@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #ff0c40;
+  --color-brand-dark: #c20832;
+  --color-ink: #000000;
+  --color-ink-2: #0a0a0a;
+  --color-card: #161616;
+  --color-line: #2a2d33;
+  --color-muted: #8a8a8a;
+  --font-display: "Instrument Serif", "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  max-width: 100%;
+  touch-action: manipulation;
+}
+
+#root {
+  min-width: 0;
+  max-width: 100%;
+}
+
+::selection {
+  background: #ff0c40;
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+}
+
+.red-glow {
+  box-shadow: 0 0 0 1px #ff0c40, 0 10px 36px rgba(255, 12, 64, 0.22);
+}
+
+.hero-floor {
+  background: #000;
+}
+
+.speed-ticks {
+  display: none;
+}
+
+.car-photo-well {
+  background:
+    radial-gradient(ellipse 78% 62% at 50% 58%, #1a1a1a 0%, #111 62%, #0c0c0c 100%);
+}
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #ff0c40;
+}
+
+img,
+video,
+iframe,
+embed,
+object {
+  max-width: 100%;
+}
+
+iframe {
+  width: 100%;
+}
+
+.field {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #111;
+  padding: 0.7rem 0.85rem;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.field:focus {
+  border-color: #ff0c40;
+}
+
+@media (max-width: 640px) {
+  .field {
+    font-size: 16px;
+    padding: 0.8rem 0.9rem;
+  }
+}
+
+.neon-line {
+  height: 2px;
+  background: #ff0c40;
+  box-shadow: 0 0 18px 4px rgba(255, 12, 64, 0.7), 0 0 50px 8px rgba(255, 12, 64, 0.25);
+}
+
+@media print {
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  body,
+  #root {
+    background: #fff !important;
+    color: #111 !important;
+  }
+}
