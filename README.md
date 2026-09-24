@@ -1,3 +1,3 @@
-# Unidades Chile
+# UnidadesChileWeb
 
-Sitio web de Unidades Chile.
+Sitio de Unidades Chile Automotriz. Catálogo, ficha, financiamiento y administración.
