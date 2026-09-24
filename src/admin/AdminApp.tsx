@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { setMeta } from "../lib/documentMeta";
 import { getAdminRecord } from "../store/repo";
 import { hydrateAdminSession, isAdminSession } from "../store/adminAuth";
 import { AdminLayout } from "./AdminLayout";
@@ -34,12 +35,15 @@ export function AdminApp() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    setMeta("robots", "noindex, nofollow");
+    document.title = "Admin | Unidades Chile";
     void (async () => {
       const rec = await getAdminRecord();
       const hash = rec && "passwordHash" in rec ? rec.passwordHash : null;
       await hydrateAdminSession(hash);
       setReady(true);
     })();
+    return () => setMeta("robots", "index, follow");
   }, []);
 
   if (!ready) {
