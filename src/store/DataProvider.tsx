@@ -4,6 +4,7 @@ import { SITE } from "../lib/config";
 import { fetchUcCatalogFromSupabase } from "../lib/catalogSupabase";
 import { PENDING_PHOTO, isRemotePhoto } from "../lib/photos";
 import { isSupabaseConfigured } from "../lib/supabase";
+import { adminDeleteVehicle, adminSaveVehicle } from "../lib/adminApi";
 import { filterToSheetPlates, fetchSheetPlates } from "../lib/sheetPlates";
 import { isUnidadesChileStock, plateKey } from "../lib/sources";
 
@@ -136,9 +137,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
       refresh,
       saveVehicle: async (v) => {
         await vehiclesRepo.save(v);
+        try {
+          await adminSaveVehicle(v);
+        } catch {
+          /* IDB queda; el API pide cookie + service role */
+        }
         await refresh();
       },
       deleteVehicle: async (id) => {
+        try {
+          await adminDeleteVehicle(id);
+        } catch {
+          /* local */
+        }
         await vehiclesRepo.remove(id);
         await refresh();
       },

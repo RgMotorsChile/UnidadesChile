@@ -68,7 +68,6 @@ export function AdminApp() {
           <Route element={<InventoryHub />}>
             <Route index element={<CatalogList />} />
             <Route path="medios" element={<MediaPage />} />
-            <Route path="novedades" element={<PublicationsPage />} />
             <Route path="vendidos" element={<SoldList />} />
           </Route>
           <Route path=":id" element={<CatalogEditor />} />
@@ -82,19 +81,21 @@ export function AdminApp() {
               <Route key="index" index element={<LeadsPage origins={[]} />} />
             ),
           )}
-          <Route path="tasaciones" element={<Navigate to="/admin/crm/consignas" replace />} />
+          <Route path="consignas" element={<Navigate to="/admin/crm/tasaciones" replace />} />
         </Route>
 
         <Route path="analitica" element={<ReportsPage />} />
 
         <Route path="config" element={<ConfigHub />}>
           <Route index element={<ContentPage />} />
+          <Route path="novedades" element={<PublicationsPage />} />
           <Route path="acceso" element={<SettingsPage />} />
         </Route>
 
         <Route path="catalogo" element={<Navigate to="/admin/inventario" replace />} />
         <Route path="catalogo/:id" element={<CatalogRedirect />} />
-        <Route path="publicaciones" element={<Navigate to="/admin/inventario/novedades" replace />} />
+        <Route path="publicaciones" element={<Navigate to="/admin/config/novedades" replace />} />
+        <Route path="inventario/novedades" element={<Navigate to="/admin/config/novedades" replace />} />
         <Route path="medios" element={<Navigate to="/admin/inventario/medios" replace />} />
         <Route path="leads" element={<Navigate to="/admin/crm" replace />} />
         <Route path="contenido" element={<Navigate to="/admin/config" replace />} />

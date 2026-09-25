@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { officialAdmin } from "../lib/adminCredentials";
 import { Logo } from "../components/Logo";
 import { getAdminRecord, saveAdminUser } from "../store/repo";
+import { adminLogin } from "../lib/adminApi";
 import { hashPassword, isAdminSession, openAdminSession } from "../store/adminAuth";
 
 export function AdminLogin() {
@@ -59,6 +60,11 @@ export function AdminLogin() {
           if (official && user === official.user && passwordHash === official.passwordHash) {
             await saveAdminUser({ user: official.user, passwordHash: official.passwordHash });
             await openAdminSession(official.passwordHash);
+            try {
+              await adminLogin(user, password);
+            } catch {
+              /* cookie de API: si falla, el panel local sigue */
+            }
             navigate("/admin", { replace: true });
             return;
           }

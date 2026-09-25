@@ -14,7 +14,7 @@ export function CrmHub() {
   return (
     <AdminHub
       title="CRM Comercial & Leads"
-      subtitle="Prospectos, reservas, créditos, consignas y pedidos de Unidades Chile."
+      subtitle="Gestión unificada de prospectos, pruebas de manejo, reservas y créditos."
       tabs={CRM_VIEWS.map((v) => ({
         to: v.path ? `/admin/crm/${v.path}` : "/admin/crm",
         label: v.label,

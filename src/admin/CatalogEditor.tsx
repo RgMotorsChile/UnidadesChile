@@ -248,10 +248,10 @@ export function CatalogEditor() {
         </AdminField>
         <AdminField label="Estado">
           <select className="field" value={form.status} onChange={(e) => set("status", e.target.value as VehicleStatus)}>
-            <option value="borrador">Borrador</option>
-            <option value="publicado">Publicado</option>
-            <option value="reservado">Reservado</option>
+            <option value="publicado">Disponible</option>
+            <option value="reservado">En reserva</option>
             <option value="vendido">Vendido</option>
+            <option value="borrador">Borrador</option>
           </select>
         </AdminField>
         <AdminField label="Cuota Autofin (vacío = pie 20% · 48m)">

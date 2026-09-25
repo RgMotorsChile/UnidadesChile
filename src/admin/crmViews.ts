@@ -1,11 +1,12 @@
 export const CRM_VIEWS = [
-  { path: "", label: "Todos", origins: [] as readonly string[] },
-  { path: "reservas", label: "Reservas", origins: ["reserva"] },
-  { path: "creditos", label: "Créditos", origins: ["financia", "credito"] },
-  { path: "consignas", label: "Consignas", origins: ["consigna", "tasacion"] },
-  { path: "visitas", label: "Visitas / test drive", origins: ["visita", "prueba-manejo"] },
-  { path: "pedidos", label: "Pedidos", origins: ["auto-pedido"] },
-  { path: "alertas", label: "Alertas de precio", origins: ["alerta-precio"] },
+  { path: "", label: "Leads & Scoring", origins: [] as readonly string[] },
+  { path: "visitas", label: "Pruebas de Manejo", origins: ["visita", "prueba-manejo"] },
+  { path: "reservas", label: "Reservas Online", origins: ["reserva"] },
+  { path: "creditos", label: "Créditos & RUT", origins: ["financia", "credito"] },
+  { path: "simulaciones", label: "Simulaciones DS", origins: ["simulacion"] },
+  { path: "tasaciones", label: "Tasaciones / Retomas", origins: ["tasacion", "consigna"] },
+  { path: "pedidos", label: "Autos a Pedido & Alertas", origins: ["auto-pedido", "alerta-precio"] },
+  { path: "clientes", label: "Base de Clientes", origins: [] as readonly string[] },
 ] as const;
 
 export function matchesOrigin(origen: string, prefixes: readonly string[]) {

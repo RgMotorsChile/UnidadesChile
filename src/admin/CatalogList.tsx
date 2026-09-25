@@ -1,142 +1,292 @@
-import { Link } from "react-router-dom";
-import { Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { useData } from "../store/DataProvider";
 import { clp, km } from "../lib/format";
-import { SafeImg, statusTone } from "./ui";
-import type { VehicleStatus } from "../store/types";
+import {
+  adminDeleteVehicle,
+  adminFetchVehicles,
+  adminSaveVehicle,
+  adminSellVehicle,
+  adminSyncInventory,
+} from "../lib/adminApi";
+import { SafeImg } from "./ui";
+import type { Vehicle, VehicleStatus } from "../store/types";
 
-const filters: { id: VehicleStatus | "todos"; label: string }[] = [
-  { id: "todos", label: "Todas" },
-  { id: "publicado", label: "Publicadas" },
-  { id: "borrador", label: "Borrador" },
-  { id: "reservado", label: "Reservadas" },
-  { id: "vendido", label: "Vendidas" },
+const FILTERS: { id: "all" | VehicleStatus; label: string }[] = [
+  { id: "all", label: "Todos los estados" },
+  { id: "publicado", label: "Disponibles" },
+  { id: "reservado", label: "En reserva" },
+  { id: "vendido", label: "Vendidos" },
+  { id: "borrador", label: "Borradores" },
 ];
 
+function rememberSale(row: { slug: string; plate: string; brand: string; model: string; year: number; salePrice: number; supplier: string }) {
+  const key = "uc-sold-history";
+  const prev = JSON.parse(localStorage.getItem(key) || "[]") as unknown[];
+  prev.unshift({ ...row, soldAt: new Date().toISOString(), photosDeleted: true });
+  localStorage.setItem(key, JSON.stringify(prev.slice(0, 200)));
+}
+
 export function CatalogList() {
-  const { vehicles } = useData();
+  const navigate = useNavigate();
+  const { vehicles, refresh, saveVehicle, deleteVehicle } = useData();
+  const [remote, setRemote] = useState<Vehicle[] | null>(null);
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<(typeof filters)[number]["id"]>("todos");
+  const [status, setStatus] = useState<(typeof FILTERS)[number]["id"]>("all");
+  const [busy, setBusy] = useState("");
+  const [sellTarget, setSellTarget] = useState<Vehicle | null>(null);
+  const [selling, setSelling] = useState(false);
+
+  const listSource = remote ?? vehicles;
+
+  const loadRemote = async () => {
+    try {
+      setRemote(await adminFetchVehicles());
+    } catch {
+      setRemote(null);
+    }
+  };
+
+  useEffect(() => {
+    void loadRemote();
+  }, []);
 
   const list = useMemo(() => {
-    return vehicles
-      .filter((v) => (status === "todos" ? true : v.status === status))
+    return listSource
+      .filter((v) => (status === "all" ? true : v.status === status))
       .filter((v) => {
         const blob = `${v.marca} ${v.modelo} ${v.year} ${v.unidad}`.toLowerCase();
         return blob.includes(q.toLowerCase());
       })
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  }, [vehicles, q, status]);
+      .sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+  }, [listSource, q, status]);
+
+  const disponibles = listSource.filter((v) => v.status === "publicado").length;
+
+  const persist = async (v: Vehicle) => {
+    try {
+      await adminSaveVehicle(v);
+    } catch {
+      await saveVehicle(v);
+    }
+    await refresh();
+    await loadRemote();
+  };
+
+  const quickStatus = async (v: Vehicle, next: VehicleStatus) => {
+    if (next === "vendido") {
+      setSellTarget(v);
+      return;
+    }
+    setBusy(v.id);
+    await persist({ ...v, status: next, updatedAt: new Date().toISOString() });
+    setBusy("");
+  };
+
+  const confirmSell = async () => {
+    if (!sellTarget) return;
+    setSelling(true);
+    try {
+      await adminSellVehicle(sellTarget.id, sellTarget.precio, "Unidades Chile");
+      rememberSale({
+        slug: sellTarget.id,
+        plate: sellTarget.unidad,
+        brand: sellTarget.marca,
+        model: sellTarget.modelo,
+        year: sellTarget.year,
+        salePrice: sellTarget.precio,
+        supplier: "Unidades Chile",
+      });
+      await deleteVehicle(sellTarget.id);
+      setSellTarget(null);
+      await refresh();
+      await loadRemote();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "No se pudo registrar la venta.");
+    } finally {
+      setSelling(false);
+    }
+  };
 
   return (
-    <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm text-white/45">{vehicles.length} unidades en la base.</p>
+          <h2 className="text-lg font-bold">Inventario de Vehículos</h2>
+          <p className="text-xs text-white/50">
+            {listSource.length} vehículos en base de datos · {disponibles} disponibles
+          </p>
         </div>
-        <Link
-          to="/admin/inventario/nueva"
-          className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold"
-        >
-          <Plus size={16} />
-          Nueva unidad
-        </Link>
-      </div>
-
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <div className="relative min-w-[240px] flex-1">
-          <Search size={16} className="absolute top-1/2 left-3 -translate-y-1/2 text-white/35" />
-          <input
-            className="field pl-9"
-            placeholder="Buscar marca, modelo o unidad"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {filters.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setStatus(f.id)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                status === f.id ? "bg-brand" : "bg-white/5 text-white/60"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-3 md:hidden">
-        {list.map((v) => (
-          <Link
-            key={v.id}
-            to={`/admin/inventario/${v.id}`}
-            className="flex gap-3 rounded-2xl border border-white/10 bg-[#121212] p-3"
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              setBusy("sync");
+              try {
+                await adminSyncInventory();
+                await refresh();
+                await loadRemote();
+              } catch (err) {
+                alert(err instanceof Error ? err.message : "No se pudo sincronizar.");
+              } finally {
+                setBusy("");
+              }
+            }}
+            className="rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-2.5 text-xs font-bold text-emerald-300"
           >
-            <SafeImg src={v.imagenes[0] ?? ""} alt="" className="h-20 w-24 shrink-0 rounded-lg object-cover" />
-            <span className="min-w-0">
-              <span className="block font-semibold">
-                {v.marca} {v.modelo} {v.year}
-              </span>
-              <span className="text-xs text-white/40">Unidad {v.unidad}</span>
-              <span className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-medium">{clp(v.precio)}</span>
-                <span className="text-white/45">{km(v.km)}</span>
-                <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusTone(v.status)}`}>
-                  {v.status}
-                </span>
-              </span>
-            </span>
+            {busy === "sync" ? "Sincronizando…" : "Sincronizar Drive & Excel"}
+          </button>
+          <Link
+            to="/admin/inventario/medios"
+            className="rounded-xl border border-brand/30 bg-brand/10 px-4 py-2.5 text-xs font-bold text-brand"
+          >
+            Gestor de Fotos
           </Link>
-        ))}
+          <Link
+            to="/admin/inventario/nueva"
+            className="rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-white"
+          >
+            + Publicar Vehículo
+          </Link>
+        </div>
       </div>
 
-      <div className="mt-6 hidden overflow-x-auto rounded-2xl border border-white/10 md:block">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-white/5 text-[11px] uppercase tracking-wider text-white/40">
-            <tr>
-              <th className="px-4 py-3 font-medium">Unidad</th>
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#121212] p-3 sm:flex-row sm:items-center">
+        <input
+          className="field flex-1"
+          placeholder="Buscar por marca, modelo o año…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        <select
+          className="field w-full sm:w-52"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as (typeof FILTERS)[number]["id"])}
+        >
+          {FILTERS.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#121212]">
+        <table className="w-full min-w-[840px] text-left text-sm">
+          <thead className="text-white/40">
+            <tr className="border-b border-white/10">
+              <th className="px-4 py-3 font-medium">Vehículo</th>
+              <th className="px-4 py-3 font-medium">Año / Km</th>
               <th className="px-4 py-3 font-medium">Precio</th>
-              <th className="px-4 py-3 font-medium">Km</th>
               <th className="px-4 py-3 font-medium">Estado</th>
-              <th className="px-4 py-3 font-medium">Vistas</th>
+              <th className="px-4 py-3 font-medium text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {list.map((v) => (
-              <tr key={v.id} className="border-t border-white/5 hover:bg-white/[0.03]">
+              <tr key={v.id} className="border-t border-white/5 hover:bg-white/[0.02]">
                 <td className="px-4 py-3">
-                  <Link to={`/admin/inventario/${v.id}`} className="flex items-center gap-3">
-                    <SafeImg
-                      src={v.imagenes[0] ?? ""}
-                      alt=""
-                      className="h-12 w-16 rounded-md object-cover"
-                    />
-                    <span>
-                      <span className="block font-semibold">
-                        {v.marca} {v.modelo} {v.year}
-                      </span>
-                      <span className="text-xs text-white/40">Unidad {v.unidad}</span>
-                    </span>
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <SafeImg src={v.imagenes[0] ?? ""} alt="" className="h-11 w-16 rounded-xl object-cover" />
+                    <div>
+                      <p className="font-bold">
+                        {v.marca} {v.modelo}
+                      </p>
+                      <p className="text-xs text-white/40">
+                        {v.version} · {v.unidad}
+                      </p>
+                    </div>
+                  </div>
                 </td>
-                <td className="px-4 py-3 font-medium">{clp(v.precio)}</td>
-                <td className="px-4 py-3 text-white/60">{km(v.km)}</td>
                 <td className="px-4 py-3">
-                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusTone(v.status)}`}>
-                    {v.status}
-                  </span>
+                  <p className="font-medium">{v.year}</p>
+                  <p className="text-xs text-white/40">{km(v.km)}</p>
                 </td>
-                <td className="px-4 py-3 text-white/50">{v.vistas}</td>
+                <td className="px-4 py-3 font-bold text-brand">{clp(v.precio)}</td>
+                <td className="px-4 py-3">
+                  <select
+                    disabled={busy === v.id}
+                    value={v.status}
+                    onChange={(e) => void quickStatus(v, e.target.value as VehicleStatus)}
+                    className="rounded-lg border border-white/15 bg-black px-2 py-1 text-xs font-semibold"
+                  >
+                    <option value="publicado">Disponible</option>
+                    <option value="reservado">En reserva</option>
+                    <option value="vendido">Vendido</option>
+                    <option value="borrador">Borrador</option>
+                  </select>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      className="text-xs text-white/50 hover:text-white"
+                      onClick={() => navigate(`/admin/inventario/${v.id}`)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs text-white/50 hover:text-white"
+                      onClick={() => navigate(`/admin/inventario/${v.id}`)}
+                    >
+                      Fotos
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs text-red-300/80 hover:text-red-200"
+                      onClick={async () => {
+                        if (!confirm(`¿Eliminar ${v.marca} ${v.modelo} del catálogo?`)) return;
+                        try {
+                          await adminDeleteVehicle(v.id);
+                        } catch {
+                          /* local */
+                        }
+                        await deleteVehicle(v.id);
+                        await refresh();
+                        await loadRemote();
+                      }}
+                    >
+                      Borrar
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {!list.length && (
+          <p className="px-4 py-8 text-center text-xs text-white/40">
+            No se encontraron vehículos con los filtros seleccionados.
+          </p>
+        )}
       </div>
+
+      {sellTarget && (
+        <div className="fixed inset-0 z-40 grid place-items-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#121212] p-5">
+            <h3 className="text-lg font-bold">Registrar venta</h3>
+            <p className="mt-2 text-sm text-white/60">
+              {sellTarget.marca} {sellTarget.modelo} · {clp(sellTarget.precio)}. Se saca de vitrina y queda en el
+              historial, como en RG Motors.
+            </p>
+            <p className="mt-3 text-xs text-white/45">Vendido por: Unidades Chile</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" className="rounded-xl px-4 py-2 text-sm text-white/50" onClick={() => setSellTarget(null)}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={selling}
+                className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold disabled:opacity-40"
+                onClick={() => void confirmSell()}
+              >
+                {selling ? "Guardando…" : "Confirmar venta"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
