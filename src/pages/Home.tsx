@@ -2,21 +2,26 @@ import { Link } from "react-router-dom";
 import { Clock3, MapPin, Navigation } from "lucide-react";
 import { CarCard } from "../components/CarCard";
 import { TrustBar } from "../components/TrustBar";
-import { clp } from "../lib/format";
+import { clp, savingsLabel } from "../lib/format";
 import { useData } from "../store/DataProvider";
 import { PageTitle } from "../components/PageTitle";
+import type { Vehicle } from "../store/types";
+
+function isL200(car: Vehicle) {
+  return /l200/i.test(`${car.marca} ${car.modelo} ${car.version}`);
+}
 
 export function Home() {
   const { published, settings } = useData();
-  const hero =
-    published.find((c) => /l200|katana/i.test(`${c.modelo} ${c.version}`)) ??
-    published.find((c) => c.carroceria === "Pickup") ??
-    published[0] ?? {
-      marca: "Mitsubishi",
-      modelo: "L200",
-      year: 2023,
-      precio: 19_890_000,
-    };
+  const cheapestL200 = published
+    .filter((car) => isL200(car) && car.precio > 0)
+    .reduce<Vehicle | null>((best, car) => {
+      if (!best || car.precio < best.precio) return car;
+      return best;
+    }, null);
+  const l200Ahorro = cheapestL200
+    ? savingsLabel(cheapestL200.precio, cheapestL200.mercado)
+    : null;
   const rail = (published.filter((c) => c.destacado).length >= 3
     ? published.filter((c) => c.destacado)
     : published
@@ -70,34 +75,42 @@ export function Home() {
                   Consigna tu vehículo
                 </Link>
               </div>
-              {hero && (
-                <div className="mt-7 w-full max-w-[220px] rounded-2xl border border-white/10 bg-black/45 px-4 py-3.5 backdrop-blur-md lg:hidden">
-                  <p className="text-[12px] font-medium text-white/55">
-                    {hero.marca} {hero.modelo} {hero.year}
+              {cheapestL200 && (
+                <Link
+                  to={`/catalogo/${cheapestL200.id}`}
+                  className="mt-7 block w-full max-w-[220px] rounded-2xl border border-white/10 bg-black/45 px-4 py-3.5 backdrop-blur-md lg:hidden"
+                >
+                  <p className="text-[12px] font-medium text-white/55">Mitsubishi L200</p>
+                  <p className="mt-1 text-[13px] text-white/45">Desde</p>
+                  <p className="text-[22px] font-semibold tracking-[-0.03em] text-white">
+                    {clp(cheapestL200.precio)}
                   </p>
-                  <p className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-white">
-                    {clp(hero.precio)}
-                  </p>
-                  <span className="mt-2 inline-flex rounded-full bg-brand/90 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.04em] text-white">
-                    −8% vs mercado
-                  </span>
-                </div>
+                  {l200Ahorro && (
+                    <span className="mt-2 inline-flex rounded-full bg-brand/90 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.04em] text-white">
+                      {l200Ahorro}
+                    </span>
+                  )}
+                </Link>
               )}
             </div>
           </div>
 
-          {hero && (
-            <div className="absolute right-5 z-20 hidden w-[min(220px,calc(100%-2rem))] rounded-2xl border border-white/10 bg-black/40 px-4 py-3.5 backdrop-blur-md sm:right-10 sm:bottom-[16%] lg:right-[5%] lg:block">
-              <p className="text-[12px] font-medium text-white/55">
-                {hero.marca} {hero.modelo} {hero.year}
+          {cheapestL200 && (
+            <Link
+              to={`/catalogo/${cheapestL200.id}`}
+              className="absolute right-5 z-20 hidden w-[min(220px,calc(100%-2rem))] rounded-2xl border border-white/10 bg-black/40 px-4 py-3.5 backdrop-blur-md hover:border-white/25 sm:right-10 sm:bottom-[16%] lg:right-[5%] lg:block"
+            >
+              <p className="text-[12px] font-medium text-white/55">Mitsubishi L200</p>
+              <p className="mt-1 text-[13px] text-white/45">Desde</p>
+              <p className="text-[22px] font-semibold tracking-[-0.03em] text-white">
+                {clp(cheapestL200.precio)}
               </p>
-              <p className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-white">
-                {clp(hero.precio)}
-              </p>
-              <span className="mt-2 inline-flex rounded-full bg-brand/90 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.04em] text-white">
-                −8% vs mercado
-              </span>
-            </div>
+              {l200Ahorro && (
+                <span className="mt-2 inline-flex rounded-full bg-brand/90 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.04em] text-white">
+                  {l200Ahorro}
+                </span>
+              )}
+            </Link>
           )}
         </section>
 
