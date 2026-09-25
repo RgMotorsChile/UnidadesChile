@@ -5,7 +5,9 @@ import {
   officialUser,
   sessionCookie,
   sha256Hex,
-} from "./_lib";
+} from "./_auth.js";
+
+export const config = { runtime: "nodejs" };
 
 type Body = { user?: string; password?: string };
 
@@ -16,15 +18,22 @@ export default async function handler(
     status: (code: number) => { json: (body: unknown) => void };
   },
 ) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ ok: false, error: "Método no permitido." });
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ ok: false, error: "Método no permitido." });
+    }
+    const user = String(req.body?.user || "").trim();
+    const password = String(req.body?.password || "");
+    const hash = officialPasswordHash();
+    if (!hash) return deny(res);
+    if (user !== officialUser()) return deny(res);
+    if (sha256Hex(`uc-pw:${password}`) !== hash) return deny(res);
+    res.setHeader("Set-Cookie", sessionCookie(expectedSessionToken()));
+    return res.status(200).json({ ok: true, user });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      error: err instanceof Error ? err.message : "Error de login.",
+    });
   }
-  const user = String(req.body?.user || "").trim();
-  const password = String(req.body?.password || "");
-  const hash = officialPasswordHash();
-  if (!hash) return deny(res);
-  if (user !== officialUser()) return deny(res);
-  if (sha256Hex(`uc-pw:${password}`) !== hash) return deny(res);
-  res.setHeader("Set-Cookie", sessionCookie(expectedSessionToken()));
-  return res.status(200).json({ ok: true, user });
 }

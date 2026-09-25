@@ -1,10 +1,7 @@
-import {
-  deny,
-  isAdminRequest,
-  supabaseAdmin,
-  supabaseAnon,
-  tenantId,
-} from "./_lib";
+import { deny, isAdminRequest } from "./_auth.js";
+import { supabaseAdmin, supabaseAnon, tenantId } from "./_db.js";
+
+export const config = { runtime: "nodejs" };
 
 function toRgStatus(status: string) {
   if (status === "publicado") return "Disponible";

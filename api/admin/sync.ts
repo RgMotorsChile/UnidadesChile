@@ -1,4 +1,6 @@
-import { deny, isAdminRequest } from "./_lib";
+import { deny, isAdminRequest } from "./_auth.js";
+
+export const config = { runtime: "nodejs" };
 
 export default async function handler(
   req: { method?: string; headers?: { cookie?: string } },

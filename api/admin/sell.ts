@@ -1,4 +1,7 @@
-import { deny, isAdminRequest, supabaseAdmin, tenantId } from "./_lib";
+import { deny, isAdminRequest } from "./_auth.js";
+import { supabaseAdmin, tenantId } from "./_db.js";
+
+export const config = { runtime: "nodejs" };
 
 export default async function handler(
   req: { method?: string; body?: { slug?: string; salePrice?: number; supplier?: string }; headers?: { cookie?: string } },

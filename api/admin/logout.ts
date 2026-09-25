@@ -1,4 +1,6 @@
-import { clearSessionCookie } from "./_lib";
+import { clearSessionCookie } from "./_auth.js";
+
+export const config = { runtime: "nodejs" };
 
 export default async function handler(
   req: { method?: string },
