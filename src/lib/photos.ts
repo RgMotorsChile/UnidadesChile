@@ -6,7 +6,16 @@ export function isPendingPhoto(src?: string) {
   return /placeholder-pending|fotos-en-proceso/i.test(src);
 }
 
+export function isRemotePhoto(src?: string) {
+  if (!src || isPendingPhoto(src)) return false;
+  return /^https?:\/\//i.test(src) || src.startsWith("idb:");
+}
+
+export function hasRemotePhotos(imagenes?: string[]) {
+  return (imagenes || []).some(isRemotePhoto);
+}
+
 export function coverSrc(imagenes: string[] | undefined) {
-  const real = (imagenes || []).find((src) => src && !isPendingPhoto(src));
+  const real = (imagenes || []).find((src) => isRemotePhoto(src) || (src && !isPendingPhoto(src)));
   return real || PENDING_PHOTO;
 }

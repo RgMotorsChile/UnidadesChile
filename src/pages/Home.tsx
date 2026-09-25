@@ -3,6 +3,7 @@ import { Clock3, MapPin, Navigation } from "lucide-react";
 import { CarCard } from "../components/CarCard";
 import { TrustBar } from "../components/TrustBar";
 import { clp, savingsLabel } from "../lib/format";
+import { hasRemotePhotos } from "../lib/photos";
 import { useData } from "../store/DataProvider";
 import { PageTitle } from "../components/PageTitle";
 import type { Vehicle } from "../store/types";
@@ -22,12 +23,11 @@ export function Home() {
   const l200Ahorro = cheapestL200
     ? savingsLabel(cheapestL200.precio, cheapestL200.mercado)
     : null;
-  const rail = (published.filter((c) => c.destacado).length >= 3
-    ? published.filter((c) => c.destacado)
-    : published
-  ).slice(0, 3);
+  const withPhotos = published.filter((car) => hasRemotePhotos(car.imagenes));
+  const featuredPhotos = withPhotos.filter((c) => c.destacado);
+  const rail = (featuredPhotos.length >= 3 ? featuredPhotos : withPhotos).slice(0, 3);
   const railIds = new Set(rail.map((c) => c.id));
-  const preview = published.filter((car) => !railIds.has(car.id)).slice(0, 3);
+  const preview = withPhotos.filter((car) => !railIds.has(car.id)).slice(0, 3);
   const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(settings.mapQuery)}&z=14&output=embed`;
 
   return (
@@ -125,14 +125,19 @@ export function Home() {
               Stock disponible
             </h2>
           </div>
-          <div className="mt-8 grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
-            {rail.map((car) => (car ? <CarCard key={car.id} car={car} layout="featured" /> : null))}
-          </div>
-          <div className="mt-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rail.map((car) => (
+              <CarCard key={car.id} car={car} />
+            ))}
             {preview.map((car) => (
               <CarCard key={car.id} car={car} />
             ))}
           </div>
+          {!withPhotos.length && (
+            <p className="mt-8 text-center text-sm text-white/45">
+              Estamos cargando las fotos del stock. Revisa el catálogo completo mientras tanto.
+            </p>
+          )}
           <div className="mt-10 flex justify-center">
             <Link
               to="/catalogo"
