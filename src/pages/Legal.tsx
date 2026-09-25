@@ -208,8 +208,9 @@ export function AvisoCredito() {
           <Link to="/financia" className="text-brand hover:underline">
             /financia
           </Link>{" "}
-          mostramos una cuota referencial calibrada contra Autofin (pie 20–60%, hasta 48
-          meses). No es oferta vinculante ni pre-aprobación.
+          mostramos una simulación con el método Autofin (pie 20–60%, hasta 48 meses).
+          No es la cuota real ni una oferta vinculante: en la mayoría de los casos la
+          cuota final puede ser menor, y solo en muy pocos casos igual o superior.
         </p>
       </section>
       <section className="space-y-2">

@@ -27,18 +27,17 @@ export function Financia() {
   return (
     <div className="mx-auto max-w-[1280px] px-4 py-10 pb-28 sm:px-6 sm:py-16 lg:px-8">
       <PageTitle
-        title="Financia | Unidades Chile"
-        description="Simula crédito Autofin con la misma cuota que en sucursal. Pie desde 20% y hasta 48 meses."
+        title="Simula tu cuota | Unidades Chile"
+        description="Simula tu cuota con el método Autofin. Es referencial: la cuota real suele ser menor."
       />
       <p className="eyebrow">Crédito Autofin</p>
-      <h1 className="mt-3 max-w-2xl text-[28px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-5xl">
-        La misma cuota
-        <br />
-        que en Autofin.
+      <h1 className="mt-3 max-w-2xl text-[28px] font-semibold leading-[1.12] tracking-[-0.02em] sm:text-5xl">
+        Simula tu cuota
       </h1>
-      <p className="mt-5 max-w-xl text-white/70">
-        Motor calibrado contra el simulador de Autofin.cl (API Trinidad: desgravamen +
-        cesantía incluidos). La cuota de acá es la misma que verás allá.
+      <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70">
+        Usamos el mismo método de simulación de Autofin (pie, plazo, desgravamen y
+        cesantía). Esta cifra no es la cuota real: en la mayoría de los casos la cuota
+        final puede ser menor, y solo en muy pocos casos igual o superior.
       </p>
 
       <div className="mt-10 grid gap-6 lg:mt-12 lg:grid-cols-2 lg:gap-8">
@@ -98,7 +97,7 @@ export function Financia() {
 
         <div className="rounded-3xl border border-brand/40 bg-black p-6 sm:p-8">
           <p className="text-[11px] font-medium uppercase tracking-wider text-white/45">
-            Cuota mensual referencial
+            Cuota simulada · no es la cuota real
           </p>
           <p className="mt-2 whitespace-nowrap text-3xl font-semibold sm:text-5xl">
             {clp(sim.monthlyPayment)}
@@ -114,11 +113,12 @@ export function Financia() {
             <p>Gastos operacionales: {clp(sim.operationalFees)}</p>
             <p>Total crédito + pie: {clp(sim.totalCostWithDown)}</p>
           </div>
-          <p className="mt-5 text-[12px] leading-relaxed text-white/40">
-            Primera cuota ~{sim.deferredFirstPaymentDays} días. Calibrado contra Autofin.cl
-            (API Trinidad). En sucursal la cuota puede confirmarse o ajustarse según
-            evaluación.{" "}
-            <Link to="/aviso-credito" className="text-white/70 underline underline-offset-2">
+          <p className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-[12px] leading-relaxed text-white/65">
+            Simulación referencial con el método Autofin. No corresponde a la cuota real:
+            en la mayoría de los casos esa cuota puede ser menor, y solo en muy pocos
+            casos igual o superior. Primera cuota ~{sim.deferredFirstPaymentDays} días.
+            La aprobación la define Autofin.{" "}
+            <Link to="/aviso-credito" className="text-white underline underline-offset-2">
               Aviso de crédito
             </Link>
           </p>
@@ -143,7 +143,7 @@ export function Financia() {
           </div>
           <a
             href={waLink(
-              `Soy ${nombre || "cliente"}. Quiero financiar ${clp(monto)} a ${sim.termMonths} meses con pie ${sim.downPct}% (${clp(sim.downPayment)}). Cuota Autofin ${clp(sim.monthlyPayment)}. Tel: ${telefono}.`,
+              `Soy ${nombre || "cliente"}. Quiero financiar ${clp(monto)} a ${sim.termMonths} meses con pie ${sim.downPct}% (${clp(sim.downPayment)}). Cuota simulada (referencial) ${clp(sim.monthlyPayment)}. Tel: ${telefono}.`,
               settings.whatsapp,
             )}
             target="_blank"
@@ -167,7 +167,9 @@ export function Financia() {
 
       <div className="mt-12 sm:mt-16">
         <h2 className="text-2xl font-semibold">Unidades fáciles de financiar</h2>
-        <p className="mt-2 text-sm text-white/45">Cuota Autofin con 20% de pie a 48 meses.</p>
+        <p className="mt-2 text-sm text-white/45">
+          Cuota simulada con 20% de pie a 48 meses. Referencial, no es la cuota real.
+        </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
           {published.slice(0, 3).map((c) => (
             <Link

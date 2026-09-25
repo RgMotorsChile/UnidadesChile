@@ -15,7 +15,7 @@ function reply(q: string, cars: { id: string; marca: string; modelo: string; yea
     return { text: "Hola. ¿Buscas pickup, furgón o algo más chico? También puedo pasarte con un ejecutivo." };
   }
   if (/financia|cuota|crédito|credito|pie/.test(t)) {
-    return { text: "El simulador de /financia usa la misma lógica Autofin: pie desde 20% y hasta 48 cuotas. Si me dices presupuesto, te armo opciones." };
+    return { text: "En /financia simulas tu cuota con el método Autofin. Es referencial: no es la cuota real; en la mayoría de los casos esa puede ser menor." };
   }
   if (/vende|tasar|compran|consign/.test(t)) {
     return { text: "En /consigna-tu-vehiculo dejas los datos y fotos del auto. Nos llega un correo y te contactamos." };
