@@ -79,7 +79,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ]);
 
     if (remote !== null) {
-      setVehicles(remote.filter((car) => isUnidadesChileStock(car.unidad)));
+      setVehicles(remote);
       setCatalogSource("supabase");
     } else if (v.length) {
       setVehicles(v.filter((car) => isUnidadesChileStock(car.unidad)));

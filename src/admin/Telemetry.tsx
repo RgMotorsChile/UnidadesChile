@@ -7,6 +7,7 @@ import { Kpi } from "./ui";
 export function TelemetryPage() {
   const { vehicles, leads, publications, media, catalogSource, ready } = useData();
   const stats = catalogStats(vehicles);
+  const lastUpdate = vehicles.reduce((acc, v) => (v.updatedAt > acc ? v.updatedAt : acc), "");
   const vistas = vehicles.reduce((n, v) => n + (v.vistas || 0), 0);
   const porOrigen = Object.entries(
     leads.reduce<Record<string, number>>((acc, l) => {
@@ -44,6 +45,14 @@ export function TelemetryPage() {
             <li className="flex justify-between">
               <span className="text-white/60">Origen del catálogo</span>
               <span>{catalogSource}</span>
+            </li>
+            <li className="flex justify-between">
+              <span className="text-white/60">Sync planilla + Drive</span>
+              <span>Todos los días 9:00 (Chile)</span>
+            </li>
+            <li className="flex justify-between">
+              <span className="text-white/60">Última ficha actualizada</span>
+              <span>{lastUpdate ? new Date(lastUpdate).toLocaleString("es-CL") : "—"}</span>
             </li>
             <li className="flex justify-between">
               <span className="text-white/60">Stock publicado</span>

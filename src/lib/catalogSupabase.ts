@@ -2,7 +2,7 @@
  * Catálogo remoto: catalog_vehicles (tenant unidades-chile).
  */
 import { cuotaDesde } from "./autofin";
-import { isUnidadesChileStock } from "./sources";
+import { plateKey } from "./sources";
 import { getSupabase, isSupabaseConfigured, UC_TENANT_SLUG } from "./supabase";
 import type { Vehicle, VehicleStatus } from "../store/types";
 
@@ -111,7 +111,7 @@ export async function fetchUcCatalogFromSupabase(): Promise<Vehicle[] | null> {
     if (error || !data) return null;
     return data
       .map((r) => rowToVehicle(r as Record<string, unknown>))
-      .filter((car) => isUnidadesChileStock(car.unidad));
+      .filter((car) => plateKey(car.unidad).length >= 5);
   } catch (err) {
     console.warn("[catalogSupabase] lectura UC falló:", err);
     return null;
