@@ -1,6 +1,6 @@
 import { deny, isAdminRequest } from "./_auth.js";
 import { orderGalleryWithCover } from "./_cover.js";
-import { supabaseAdmin, supabaseAnon, tenantId } from "./_db.js";
+import { dbReader, supabaseAdmin, tenantId } from "./_db.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -48,7 +48,7 @@ export default async function handler(
 ) {
   if (!isAdminRequest(req)) return deny(res);
   const method = req.method || "GET";
-  const reader = supabaseAdmin() || supabaseAnon();
+  const reader = dbReader();
   if (!reader) return res.status(503).json({ ok: false, error: "Supabase no configurado." });
   const tenant = await tenantId(reader);
   if (!tenant) return res.status(500).json({ ok: false, error: "Tenant no encontrado." });

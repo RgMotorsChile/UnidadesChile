@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { adminFetchVehicles } from "../lib/adminApi";
 import { mediaUrlsEqual, normalizeMediaUrl } from "../lib/frontCoverMap";
-import { PENDING_PHOTO } from "../lib/photos";
+import { PENDING_PHOTO, isPendingPhoto } from "../lib/photos";
+import { useData } from "../store/DataProvider";
 import {
   convertImageToWebp,
   formatBytes,
@@ -24,7 +25,18 @@ function revokeAll(items: StagedPhoto[]) {
   }
 }
 
+function galleryFromVehicle(vehicle: Vehicle | null): PhotoItem[] {
+  return (vehicle?.imagenes || [])
+    .filter((url) => url && !isPendingPhoto(url))
+    .map((url) => ({
+      name: url.split("/").pop()?.split("?")[0] || url,
+      url,
+      size: 0,
+    }));
+}
+
 export function PhotoManager({ initialSlug }: { initialSlug?: string }) {
+  const { vehicles: catalogVehicles } = useData();
   const [params, setParams] = useSearchParams();
   const [vehiclesData, setVehiclesData] = useState<Vehicle[]>([]);
   const [selectedSlug, setSelectedSlug] = useState(initialSlug || params.get("slug") || "");
@@ -53,44 +65,77 @@ export function PhotoManager({ initialSlug }: { initialSlug?: string }) {
     });
   }, []);
 
-  const loadVehicles = useCallback(async () => {
-    try {
-      const list = await adminFetchVehicles();
+  const applyVehicleList = useCallback(
+    (list: Vehicle[]) => {
       setVehiclesData(list);
       setSelectedSlug((cur) => cur || initialSlug || params.get("slug") || list[0]?.id || "");
+    },
+    [initialSlug, params],
+  );
+
+  const loadVehicles = useCallback(async () => {
+    try {
+      applyVehicleList(await adminFetchVehicles());
     } catch (err) {
+      if (catalogVehicles.length) {
+        applyVehicleList(catalogVehicles);
+        return;
+      }
       setUploadError(err instanceof Error ? err.message : "No se pudo leer el inventario.");
     }
-  }, [initialSlug, params]);
+  }, [applyVehicleList, catalogVehicles]);
 
   const fetchPhotos = useCallback(async (slug: string) => {
     if (!slug) return;
     setIsLoadingPhotos(true);
+    const fallback =
+      galleryFromVehicle(vehiclesData.find((v) => v.id === slug) || catalogVehicles.find((v) => v.id === slug) || null);
     try {
       const res = await fetch(`/api/admin/photos?slug=${encodeURIComponent(slug)}&_=${Date.now()}`, {
         credentials: "include",
         cache: "no-store",
       });
       if (!res.ok) {
+        if (fallback.length) {
+          setGallery(fallback);
+          setCoverImage(fallback[0]?.url || "");
+          setUploadError(null);
+          return;
+        }
         setUploadError(await readApiError(res));
         setGallery([]);
         return;
       }
       const data = (await res.json()) as { gallery?: PhotoItem[]; coverImage?: string };
       const items = Array.isArray(data.gallery) ? data.gallery : [];
-      setGallery(items);
-      setCoverImage(data.coverImage || items[0]?.url || "");
-      if (items.length) setUploadError(null);
+      if (items.length) {
+        setGallery(items);
+        setCoverImage(data.coverImage || items[0]?.url || "");
+        setUploadError(null);
+        return;
+      }
+      setGallery(fallback);
+      setCoverImage(fallback[0]?.url || data.coverImage || "");
     } catch {
+      if (fallback.length) {
+        setGallery(fallback);
+        setCoverImage(fallback[0]?.url || "");
+        return;
+      }
       setUploadError("No se pudieron cargar las fotos de esta unidad.");
     } finally {
       setIsLoadingPhotos(false);
     }
-  }, []);
+  }, [catalogVehicles, vehiclesData]);
 
   useEffect(() => {
     void loadVehicles();
   }, [loadVehicles]);
+
+  useEffect(() => {
+    if (vehiclesData.length || !catalogVehicles.length) return;
+    applyVehicleList(catalogVehicles);
+  }, [applyVehicleList, catalogVehicles, vehiclesData.length]);
 
   useEffect(() => {
     if (!selectedSlug) return;
@@ -268,6 +313,7 @@ export function PhotoManager({ initialSlug }: { initialSlug?: string }) {
           <img
             src={coverImage || selectedVehicle?.imagenes[0] || PENDING_PHOTO}
             alt=""
+            referrerPolicy="no-referrer"
             className="h-16 w-24 rounded-xl border border-white/10 bg-black object-cover"
             onError={(e) => {
               e.currentTarget.onerror = null;
@@ -418,6 +464,7 @@ export function PhotoManager({ initialSlug }: { initialSlug?: string }) {
                       <img
                         src={photo.url}
                         alt=""
+                        referrerPolicy="no-referrer"
                         className="h-full w-full cursor-zoom-in object-cover"
                         onClick={() => setPreviewImage(photo.url)}
                         onError={(e) => {
@@ -458,7 +505,7 @@ export function PhotoManager({ initialSlug }: { initialSlug?: string }) {
 
       {previewImage && (
         <button type="button" className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4" onClick={() => setPreviewImage(null)}>
-          <img src={previewImage} alt="" className="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain" />
+          <img src={previewImage} alt="" referrerPolicy="no-referrer" className="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain" />
         </button>
       )}
     </div>

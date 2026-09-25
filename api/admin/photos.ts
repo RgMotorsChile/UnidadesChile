@@ -1,5 +1,5 @@
 import { deny, isAdminRequest } from "./_auth.js";
-import { supabaseAdmin, supabaseAnon, tenantId } from "./_db.js";
+import { dbReader, supabaseAdmin, tenantId } from "./_db.js";
 import { deleteBlobUrls, isBlobReady, storeMediaFile } from "./_media.js";
 import {
   driveFileId,
@@ -31,7 +31,7 @@ function decodeDataUrl(raw: string) {
 }
 
 async function loadVehicle(slug: string) {
-  const sb = supabaseAdmin() || supabaseAnon();
+  const sb = dbReader();
   if (!sb) return { error: "Supabase no configurado.", row: null, tenant: null, sb: null };
   const tenant = await tenantId(sb);
   if (!tenant) return { error: "Tenant no encontrado.", row: null, tenant: null, sb };
