@@ -10,6 +10,7 @@ import { PageTitle } from "../components/PageTitle";
 import { TestDrive } from "../components/TestDrive";
 import { LeadModals } from "../components/LeadModals";
 import { useCompare } from "../components/Compare";
+import { coverSrc } from "../lib/photos";
 import { SafeImg } from "../admin/ui";
 import { useData } from "../store/DataProvider";
 
@@ -70,7 +71,7 @@ export function Auto() {
           <div className="absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-t from-brand/35 to-transparent sm:h-40" />
           <div className="neon-line absolute bottom-[12%] left-[8%] z-10 hidden w-[70%] sm:block" />
           <div className="absolute bottom-3 left-1/2 z-20 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 gap-2 overflow-x-auto px-1 sm:left-4 sm:top-5 sm:bottom-auto sm:max-w-none sm:translate-x-0 sm:flex-col sm:overflow-visible">
-            {car.imagenes.map((src, i) => (
+            {(car.imagenes.length ? car.imagenes : [coverSrc(car.imagenes)]).map((src, i) => (
               <button
                 key={src}
                 type="button"
@@ -84,7 +85,7 @@ export function Auto() {
             ))}
           </div>
           <SafeImg
-            src={car.imagenes[shot]}
+            src={car.imagenes[shot] || coverSrc(car.imagenes)}
             alt={`${car.marca} ${car.modelo}`}
             className="aspect-[16/11] w-full object-cover object-center"
           />

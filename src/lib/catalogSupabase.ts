@@ -2,6 +2,7 @@
  * Catálogo remoto: catalog_vehicles (tenant unidades-chile).
  */
 import { cuotaDesde } from "./autofin";
+import { PENDING_PHOTO, coverSrc } from "./photos";
 import { plateKey } from "./sources";
 import { getSupabase, isSupabaseConfigured, UC_TENANT_SLUG } from "./supabase";
 import type { Vehicle, VehicleStatus } from "../store/types";
@@ -53,7 +54,8 @@ function rowToVehicle(row: Record<string, unknown>): Vehicle {
     ? (row.gallery as string[]).filter(Boolean)
     : [];
   const image = String(row.image || "");
-  const imagenes = gallery.length ? gallery : image ? [image] : [];
+  const rawImagenes = gallery.length ? gallery : image ? [image] : [];
+  const imagenes = coverSrc(rawImagenes) === PENDING_PHOTO ? [PENDING_PHOTO] : rawImagenes;
   const precio = Number(row.price) || 0;
   const highlights = Array.isArray(row.highlights)
     ? (row.highlights as string[])

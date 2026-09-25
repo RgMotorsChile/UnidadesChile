@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Estamos trabajando en las fotos">
+  <rect width="800" height="600" fill="#111111"/>
+  <rect x="250" y="168" width="300" height="170" rx="18" fill="none" stroke="#ff0c40" stroke-width="3"/>
+  <circle cx="400" cy="240" r="36" fill="none" stroke="#ff0c40" stroke-width="3"/>
+  <path d="M318 318h164" stroke="#ff0c40" stroke-width="3" stroke-linecap="round"/>
+  <text x="400" y="390" text-anchor="middle" fill="#ffffff" font-family="Inter,system-ui,sans-serif" font-size="26" font-weight="600">Estamos trabajando</text>
+  <text x="400" y="426" text-anchor="middle" fill="#ffffff" font-family="Inter,system-ui,sans-serif" font-size="26" font-weight="600">en las fotos</text>
+  <text x="400" y="468" text-anchor="middle" fill="#8a8a8a" font-family="Inter,system-ui,sans-serif" font-size="15">Unidades Chile · pronto las verás aquí</text>
+</svg>

@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { PENDING_PHOTO } from "../lib/photos";
 import { useMediaSrc } from "../store/useMediaSrc";
 
 export function SafeImg({
@@ -10,9 +11,24 @@ export function SafeImg({
   alt: string;
   className?: string;
 }) {
-  const url = useMediaSrc(src);
-  if (!url) return <div className={`bg-[#111] ${className ?? ""}`} />;
-  return <img src={url} alt={alt} className={className} />;
+  const resolved = useMediaSrc(src);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src, resolved]);
+
+  const url = !resolved || failed ? PENDING_PHOTO : resolved;
+  return (
+    <img
+      src={url}
+      alt={alt}
+      className={className}
+      onError={() => {
+        if (url !== PENDING_PHOTO) setFailed(true);
+      }}
+    />
+  );
 }
 
 export function Kpi({

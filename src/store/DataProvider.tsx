@@ -2,8 +2,21 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { cars } from "../data/cars";
 import { SITE } from "../lib/config";
 import { fetchUcCatalogFromSupabase } from "../lib/catalogSupabase";
+import { PENDING_PHOTO, isPendingPhoto } from "../lib/photos";
 import { isSupabaseConfigured } from "../lib/supabase";
-import { isUnidadesChileStock } from "../lib/sources";
+import { isUnidadesChileStock, plateKey } from "../lib/sources";
+
+const seedByPlate = new Map(cars.map((car) => [plateKey(car.unidad), car]));
+
+function hydratePhotos(list: Vehicle[]): Vehicle[] {
+  return list.map((car) => {
+    const hasReal = car.imagenes.some((src) => src && !isPendingPhoto(src));
+    if (hasReal) return car;
+    const local = seedByPlate.get(plateKey(car.unidad));
+    if (local?.imagenes?.length) return { ...car, imagenes: local.imagenes };
+    return { ...car, imagenes: [PENDING_PHOTO] };
+  });
+}
 import {
   getSettings,
   leadsRepo,
@@ -79,10 +92,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ]);
 
     if (remote !== null) {
-      setVehicles(remote);
+      setVehicles(hydratePhotos(remote));
       setCatalogSource("supabase");
     } else if (v.length) {
-      setVehicles(v.filter((car) => isUnidadesChileStock(car.unidad)));
+      setVehicles(hydratePhotos(v.filter((car) => isUnidadesChileStock(car.unidad))));
       setCatalogSource("local");
     }
     setPublications(p);
