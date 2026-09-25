@@ -228,7 +228,7 @@ export function CatalogList() {
                     <button
                       type="button"
                       className="text-xs text-white/50 hover:text-white"
-                      onClick={() => navigate(`/admin/inventario/${v.id}`)}
+                      onClick={() => navigate(`/admin/inventario/medios?slug=${encodeURIComponent(v.id)}`)}
                     >
                       Fotos
                     </button>

@@ -4,6 +4,8 @@ import { ImagePlus, Star, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { useData } from "../store/DataProvider";
 import { nowIso, uid } from "../store/repo";
 import { cuotaDesde } from "../lib/autofin";
+import { adminReorderPhotos, adminSetCover } from "../lib/adminApi";
+import { orderGalleryWithCover } from "../lib/frontCoverMap";
 import type { Vehicle, VehicleStatus } from "../store/types";
 import { AdminField, SafeImg } from "./ui";
 
@@ -70,12 +72,31 @@ export function CatalogEditor() {
     setBusy(false);
   };
 
+  const persistGallery = async (next: string[]) => {
+    set("imagenes", next);
+    if (!form.id || isNew) return;
+    try {
+      await adminReorderPhotos(form.id, next);
+    } catch {
+      /* se guarda al pulsar Guardar */
+    }
+  };
+
   const movePhoto = (index: number, dir: -1 | 1) => {
     const next = [...form.imagenes];
     const j = index + dir;
     if (j < 0 || j >= next.length) return;
     [next[index], next[j]] = [next[j], next[index]];
+    void persistGallery(next);
+  };
+
+  const setCover = (src: string) => {
+    const next = orderGalleryWithCover(src, form.imagenes);
     set("imagenes", next);
+    if (!form.id || isNew) return;
+    void adminSetCover(form.id, src).catch(() => {
+      /* se guarda al pulsar Guardar */
+    });
   };
 
   const canSave = form.marca && form.modelo && form.precio > 0;
@@ -127,7 +148,14 @@ export function CatalogEditor() {
       </div>
 
       <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold">Fotos</h2>
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+          <h2 className="text-lg font-semibold">Fotos</h2>
+          {!isNew && form.id && (
+            <Link to={`/admin/inventario/medios?slug=${encodeURIComponent(form.id)}`} className="text-xs font-semibold text-brand">
+              Abrir estudio de fotos
+            </Link>
+          )}
+        </div>
         <label
           onDragOver={(e) => {
             e.preventDefault();
@@ -141,7 +169,7 @@ export function CatalogEditor() {
         >
           <ImagePlus className="mb-3 text-brand" />
           <p className="font-semibold">Arrastra fotos aquí o haz clic para elegir</p>
-          <p className="mt-1 text-sm text-white/40">JPG, PNG o WEBP. La primera foto es la portada del catálogo.</p>
+          <p className="mt-1 text-sm text-white/40">JPG, PNG o WEBP. Pulsa «Poner portada» en la foto que quieras al frente.</p>
           <input
             type="file"
             accept="image/*"
@@ -159,7 +187,9 @@ export function CatalogEditor() {
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {form.imagenes.map((src, i) => (
               <div key={src + i} className="group relative overflow-hidden rounded-xl bg-black">
-                <SafeImg src={src} alt="" className="aspect-[4/3] w-full object-cover" />
+                <button type="button" className="block w-full" onClick={() => i !== 0 && setCover(src)}>
+                  <SafeImg src={src} alt="" className="aspect-[4/3] w-full object-cover" />
+                </button>
                 {i === 0 && (
                   <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-brand px-2 py-0.5 text-[10px] font-semibold">
                     <Star size={10} /> Portada
@@ -172,9 +202,14 @@ export function CatalogEditor() {
                   <button type="button" onClick={() => movePhoto(i, 1)} className="rounded p-1 hover:bg-white/10">
                     <ArrowDown size={14} />
                   </button>
+                  {i !== 0 && (
+                    <button type="button" onClick={() => setCover(src)} className="rounded px-1.5 text-[10px] font-semibold text-brand hover:bg-white/10">
+                      Portada
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => set("imagenes", form.imagenes.filter((_, j) => j !== i))}
+                    onClick={() => void persistGallery(form.imagenes.filter((_, j) => j !== i))}
                     className="rounded p-1 hover:bg-white/10"
                   >
                     <Trash2 size={14} />

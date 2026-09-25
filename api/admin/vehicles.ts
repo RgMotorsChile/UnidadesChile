@@ -1,4 +1,5 @@
 import { deny, isAdminRequest } from "./_auth.js";
+import { orderGalleryWithCover } from "./_cover.js";
 import { supabaseAdmin, supabaseAnon, tenantId } from "./_db.js";
 
 export const config = { runtime: "nodejs" };
@@ -31,8 +32,8 @@ function vehicleToRow(v: Record<string, unknown>, tenant: string) {
     transmission: String(v.transmision || v.transmission || ""),
     body_type: String(v.carroceria || v.body_type || ""),
     location: String(v.ciudad || v.location || "Puerto Montt"),
-    image: imagenes[0] || String(v.image || ""),
-    gallery: imagenes,
+    image: orderGalleryWithCover(String(v.image || imagenes[0] || ""), imagenes)[0] || "",
+    gallery: orderGalleryWithCover(String(v.image || imagenes[0] || ""), imagenes),
     featured: Boolean(v.destacado ?? v.featured),
     status,
     traction: String(v.traccion || v.traction || ""),

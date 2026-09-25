@@ -1,4 +1,5 @@
 import type { Vehicle, VehicleStatus } from "../store/types";
+import { orderGalleryWithCover } from "./frontCoverMap";
 
 export function toUcStatus(raw: string | undefined): VehicleStatus {
   const s = (raw || "").toLowerCase();
@@ -42,7 +43,7 @@ export function rowToAdminVehicle(row: Record<string, unknown>): Vehicle {
     destacado: Boolean(row.featured),
     certificado: true,
     cuota: 0,
-    imagenes: gallery.length ? gallery : image ? [image] : [],
+    imagenes: orderGalleryWithCover(image, gallery.length ? gallery : image ? [image] : []),
     status: toUcStatus(row.status != null ? String(row.status) : undefined),
     notas: "",
     vistas: 0,
@@ -111,4 +112,24 @@ export async function adminSellVehicle(slug: string, salePrice: number, supplier
 export async function adminSyncInventory() {
   const res = await fetch("/api/admin/sync", { method: "POST", credentials: "include" });
   return parse(res);
+}
+
+export async function adminSetCover(slug: string, coverUrl: string) {
+  const res = await fetch("/api/admin/photos", {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ slug, action: "set_cover", coverUrl }),
+  });
+  await parse(res);
+}
+
+export async function adminReorderPhotos(slug: string, gallery: string[]) {
+  const res = await fetch("/api/admin/photos", {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ slug, action: "reorder", gallery }),
+  });
+  await parse(res);
 }

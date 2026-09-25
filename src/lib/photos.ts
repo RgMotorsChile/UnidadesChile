@@ -17,6 +17,8 @@ export function hasRemotePhotos(imagenes?: string[]) {
 }
 
 export function coverSrc(imagenes: string[] | undefined) {
-  const real = (imagenes || []).find((src) => isRemotePhoto(src) || (src && !isPendingPhoto(src)));
-  return real || PENDING_PHOTO;
+  const first = (imagenes || []).find((src) => src && !isPendingPhoto(src) && !src.startsWith("idb:"));
+  if (first) return first;
+  const local = (imagenes || []).find((src) => src && !isPendingPhoto(src));
+  return local || PENDING_PHOTO;
 }
