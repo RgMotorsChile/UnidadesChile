@@ -1,6 +1,27 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { PENDING_PHOTO } from "../lib/photos";
+import { isPendingPhoto } from "../lib/photos";
 import { useMediaSrc } from "../store/useMediaSrc";
+
+export function PhotosPending({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={`grid place-items-center bg-[#111] px-3 text-center ${className}`}
+      role="img"
+      aria-label="Estamos trabajando en las fotos"
+    >
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">
+          Unidades Chile
+        </p>
+        <p className="mt-1.5 text-[13px] font-semibold leading-snug text-white">
+          Estamos trabajando
+          <br />
+          en las fotos
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export function SafeImg({
   src,
@@ -18,15 +39,16 @@ export function SafeImg({
     setFailed(false);
   }, [src, resolved]);
 
-  const url = !resolved || failed ? PENDING_PHOTO : resolved;
+  if (!resolved || failed || isPendingPhoto(src) || isPendingPhoto(resolved)) {
+    return <PhotosPending className={className} />;
+  }
+
   return (
     <img
-      src={url}
+      src={resolved}
       alt={alt}
       className={className}
-      onError={() => {
-        if (url !== PENDING_PHOTO) setFailed(true);
-      }}
+      onError={() => setFailed(true)}
     />
   );
 }

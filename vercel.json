@@ -1,6 +1,11 @@
 {
   "framework": "vite",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
+  "rewrites": [
+    {
+      "source": "/((?!api/|images/|cars/|logos/|favicon|og-image|robots|sitemap|site.webmanifest|apple-touch).*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
