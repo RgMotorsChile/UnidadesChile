@@ -51,25 +51,47 @@ function galleryOf(row: Record<string, unknown>) {
   return orderGalleryWithCover(image, gallery.length ? gallery : image ? [image] : []);
 }
 
+async function saveViaRg(slug: string, image: string, gallery: string[]) {
+  const secret = (process.env.CRON_SECRET || "").trim();
+  if (!secret) return "Falta CRON_SECRET para guardar la portada.";
+  const url =
+    process.env.UC_CATALOG_WRITE_URL ||
+    "https://www.rgmotorschile.cl/api/cron/uc-catalog";
+  const remote = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ slug, image, gallery }),
+  });
+  const data = (await remote.json().catch(() => ({}))) as { error?: string };
+  if (!remote.ok) return data.error || `No se pudo guardar la portada (${remote.status}).`;
+  return "";
+}
+
 async function saveGallery(
   slug: string,
   tenant: string,
   image: string,
   gallery: string[],
 ) {
-  const writer = supabaseAdmin();
-  if (!writer) return "Falta SUPABASE_SERVICE_ROLE_KEY para guardar la portada.";
   const ordered = orderGalleryWithCover(image, gallery);
-  const { error } = await writer
-    .from("catalog_vehicles")
-    .update({
-      image: ordered[0] || image,
-      gallery: ordered,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("tenant_id", tenant)
-    .eq("slug", slug);
-  return error ? error.message : "";
+  const writer = supabaseAdmin();
+  if (writer) {
+    const { error } = await writer
+      .from("catalog_vehicles")
+      .update({
+        image: ordered[0] || image,
+        gallery: ordered,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("tenant_id", tenant)
+      .eq("slug", slug);
+    return error ? error.message : "";
+  }
+  return saveViaRg(slug, ordered[0] || image, ordered);
 }
 
 export default async function handler(
