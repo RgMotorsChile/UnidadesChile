@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { cars } from "../data/cars";
 import { SITE } from "../lib/config";
 import { fetchUcCatalogFromSupabase } from "../lib/catalogSupabase";
-import { PENDING_PHOTO, isPendingPhoto } from "../lib/photos";
+import { PENDING_PHOTO, isRemotePhoto } from "../lib/photos";
 import { isSupabaseConfigured } from "../lib/supabase";
 import { filterToSheetPlates, fetchSheetPlates } from "../lib/sheetPlates";
 import { isUnidadesChileStock, plateKey } from "../lib/sources";
@@ -11,7 +11,7 @@ const seedByPlate = new Map(cars.map((car) => [plateKey(car.unidad), car]));
 
 function hydratePhotos(list: Vehicle[]): Vehicle[] {
   return list.map((car) => {
-    const hasReal = car.imagenes.some((src) => src && !isPendingPhoto(src));
+    const hasReal = car.imagenes.some((src) => isRemotePhoto(src));
     if (hasReal) return car;
     const local = seedByPlate.get(plateKey(car.unidad));
     if (local?.imagenes?.length) return { ...car, imagenes: local.imagenes };

@@ -125,19 +125,16 @@ export function Home() {
               Stock disponible
             </h2>
           </div>
-          <div className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
             {rail.map((car) => (
-              <CarCard key={car.id} car={car} />
+              <CarCard key={car.id} car={car} layout="featured" />
             ))}
+          </div>
+          <div className="mt-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {preview.map((car) => (
               <CarCard key={car.id} car={car} />
             ))}
           </div>
-          {!withPhotos.length && (
-            <p className="mt-8 text-center text-sm text-white/45">
-              Estamos cargando las fotos del stock. Revisa el catálogo completo mientras tanto.
-            </p>
-          )}
           <div className="mt-10 flex justify-center">
             <Link
               to="/catalogo"

@@ -8,7 +8,8 @@ export function isPendingPhoto(src?: string) {
 
 export function isRemotePhoto(src?: string) {
   if (!src || isPendingPhoto(src)) return false;
-  return /^https?:\/\//i.test(src) || src.startsWith("idb:");
+  if (src.startsWith("idb:")) return true;
+  return /blob\.vercel-storage\.com|lh3\.googleusercontent\.com/i.test(src);
 }
 
 export function hasRemotePhotos(imagenes?: string[]) {
