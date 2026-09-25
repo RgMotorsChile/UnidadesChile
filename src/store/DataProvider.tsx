@@ -4,6 +4,7 @@ import { SITE } from "../lib/config";
 import { fetchUcCatalogFromSupabase } from "../lib/catalogSupabase";
 import { PENDING_PHOTO, isPendingPhoto } from "../lib/photos";
 import { isSupabaseConfigured } from "../lib/supabase";
+import { filterToSheetPlates, fetchSheetPlates } from "../lib/sheetPlates";
 import { isUnidadesChileStock, plateKey } from "../lib/sources";
 
 const seedByPlate = new Map(cars.map((car) => [plateKey(car.unidad), car]));
@@ -83,19 +84,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
       remote = await fetchUcCatalogFromSupabase();
     }
 
-    const [v, p, l, m, s] = await Promise.all([
+    const [v, p, l, m, s, plates] = await Promise.all([
       vehiclesRepo.all(),
       publicationsRepo.all(),
       leadsRepo.all(),
       mediaRepo.all(),
       getSettings(),
+      fetchSheetPlates(),
     ]);
 
     if (remote !== null) {
-      setVehicles(hydratePhotos(remote));
+      setVehicles(hydratePhotos(filterToSheetPlates(remote, plates)));
       setCatalogSource("supabase");
     } else if (v.length) {
-      setVehicles(hydratePhotos(v.filter((car) => isUnidadesChileStock(car.unidad))));
+      setVehicles(
+        hydratePhotos(
+          filterToSheetPlates(
+            v.filter((car) => isUnidadesChileStock(car.unidad)),
+            plates,
+          ),
+        ),
+      );
       setCatalogSource("local");
     }
     setPublications(p);
