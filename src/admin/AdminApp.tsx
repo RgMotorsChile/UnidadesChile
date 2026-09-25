@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { officialAdmin } from "../lib/adminCredentials";
 import { setMeta } from "../lib/documentMeta";
 import { getAdminRecord } from "../store/repo";
 import { hydrateAdminSession, isAdminSession } from "../store/adminAuth";
@@ -38,8 +39,10 @@ export function AdminApp() {
     setMeta("robots", "noindex, nofollow");
     document.title = "Admin | Unidades Chile";
     void (async () => {
+      const official = officialAdmin();
       const rec = await getAdminRecord();
-      const hash = rec && "passwordHash" in rec ? rec.passwordHash : null;
+      const hash =
+        official?.passwordHash ?? (rec && "passwordHash" in rec ? rec.passwordHash : null);
       await hydrateAdminSession(hash);
       setReady(true);
     })();

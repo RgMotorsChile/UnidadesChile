@@ -1,18 +1,26 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { officialAdmin } from "../lib/adminCredentials";
 import { Logo } from "../components/Logo";
 import { getAdminRecord, saveAdminUser } from "../store/repo";
 import { hashPassword, isAdminSession, openAdminSession } from "../store/adminAuth";
 
 export function AdminLogin() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "setup" | "loading">("loading");
-  const [user, setUser] = useState("admin");
+  const official = officialAdmin();
+  const [mode, setMode] = useState<"login" | "setup" | "loading">(official ? "login" : "loading");
+  const [user, setUser] = useState(official?.user ?? "admin");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const creds = officialAdmin();
+    if (creds) {
+      setMode("login");
+      setUser(creds.user);
+      return;
+    }
     void getAdminRecord().then((rec) => {
       setMode(rec ? "login" : "setup");
       if (rec?.user) setUser(rec.user);
@@ -31,6 +39,7 @@ export function AdminLogin() {
           if (mode === "loading") return;
 
           if (mode === "setup") {
+            if (official) return;
             if (password.length < 8) {
               setError("Usa al menos 8 caracteres.");
               return;
@@ -46,12 +55,24 @@ export function AdminLogin() {
             return;
           }
 
+          const passwordHash = await hashPassword(password);
+          if (official && user === official.user && passwordHash === official.passwordHash) {
+            await saveAdminUser({ user: official.user, passwordHash: official.passwordHash });
+            await openAdminSession(official.passwordHash);
+            navigate("/admin", { replace: true });
+            return;
+          }
+
+          if (official) {
+            setError("Usuario o contraseña incorrectos.");
+            return;
+          }
+
           const rec = await getAdminRecord();
           if (!rec) {
             setMode("setup");
             return;
           }
-          const passwordHash = await hashPassword(password);
           const ok =
             "passwordHash" in rec
               ? rec.passwordHash === passwordHash
