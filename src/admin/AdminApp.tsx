@@ -82,6 +82,7 @@ export function AdminApp() {
               <Route key="index" index element={<LeadsPage origins={[]} />} />
             ),
           )}
+          <Route path="tasaciones" element={<Navigate to="/admin/crm/consignas" replace />} />
         </Route>
 
         <Route path="analitica" element={<ReportsPage />} />

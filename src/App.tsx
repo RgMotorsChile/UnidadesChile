@@ -38,7 +38,8 @@ export function App() {
           <Route path="/catalogo/:id" element={<Auto />} />
           <Route path="/inventario" element={<Navigate to="/catalogo" replace />} />
           <Route path="/inventario/:id" element={<LegacyAuto />} />
-          <Route path="/vende-tu-auto" element={<Vende />} />
+          <Route path="/consigna-tu-vehiculo" element={<Vende />} />
+          <Route path="/vende-tu-auto" element={<Navigate to="/consigna-tu-vehiculo" replace />} />
           <Route path="/financia" element={<Financia />} />
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/novedades" element={<Novedades />} />

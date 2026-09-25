@@ -26,7 +26,7 @@ export function Contacto() {
         Contacto y ubicación
       </h1>
       <p className="mt-4 max-w-xl text-white/60">
-        Te asesoramos en la compra o venta. Respuesta el mismo día hábil.
+        Te asesoramos en la compra o en la consignación. Respuesta el mismo día hábil.
       </p>
 
       <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12">
@@ -105,8 +105,13 @@ export function Contacto() {
 
         <div className="space-y-3">
           <Info icon={MapPin} title="Showroom" text={settings.address} />
-          <Info icon={Phone} title="Teléfono" text={settings.phoneDisplay} />
-          <Info icon={Mail} title="Correo" text={settings.email} />
+          <Info
+            icon={Phone}
+            title="Teléfono"
+            text={settings.phoneDisplay}
+            href={waLink("Hola, quiero información de Unidades Chile.", settings.whatsapp)}
+          />
+          <Info icon={Mail} title="Correo" text={settings.email} href={`mailto:${settings.email}`} />
           <Info icon={Clock3} title="Horario" text={settings.hours} />
           <a
             href={waLink("Hola, quiero información de Unidades Chile.", settings.whatsapp)}
@@ -149,18 +154,29 @@ function Info({
   icon: Icon,
   title,
   text,
+  href,
 }: {
   icon: typeof MapPin;
   title: string;
   text: string;
+  href?: string;
 }) {
-  return (
-    <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-[#141414] p-4">
+  const inner = (
+    <>
       <Icon size={16} className="mt-0.5 shrink-0 text-brand" />
       <div>
         <p className="text-sm font-semibold">{title}</p>
         <p className="mt-0.5 text-xs text-white/55">{text}</p>
       </div>
-    </div>
+    </>
   );
+  const className = "flex items-start gap-3 rounded-2xl border border-white/10 bg-[#141414] p-4";
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className={`${className} hover:border-white/25`}>
+        {inner}
+      </a>
+    );
+  }
+  return <div className={className}>{inner}</div>;
 }

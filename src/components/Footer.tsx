@@ -21,7 +21,7 @@ export function Footer() {
           <div className="mt-4 flex flex-col gap-2 text-sm text-white/80">
             <Link to="/catalogo" className="hover:text-white">Catálogo</Link>
             <Link to="/comparador" className="hover:text-white">Comparador</Link>
-            <Link to="/vende-tu-auto" className="hover:text-white">Vende tu auto</Link>
+            <Link to="/consigna-tu-vehiculo" className="hover:text-white">Consigna tu vehículo</Link>
             <Link to="/financia" className="hover:text-white">Financia</Link>
             <Link to="/nosotros" className="hover:text-white">Nosotros</Link>
             <Link to="/contacto" className="hover:text-white">Contacto</Link>

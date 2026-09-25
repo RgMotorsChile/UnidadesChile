@@ -7,7 +7,7 @@ import { useData } from "../store/DataProvider";
 
 const links = [
   { to: "/catalogo", label: "Catálogo" },
-  { to: "/vende-tu-auto", label: "Vende tu auto" },
+  { to: "/consigna-tu-vehiculo", label: "Consigna tu vehículo" },
   { to: "/financia", label: "Financia" },
   { to: "/nosotros", label: "Nosotros" },
 ];

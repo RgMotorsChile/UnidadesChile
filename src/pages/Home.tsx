@@ -64,10 +64,10 @@ export function Home() {
                   Explorar catálogo
                 </Link>
                 <Link
-                  to="/vende-tu-auto"
+                  to="/consigna-tu-vehiculo"
                   className="rounded-full border border-white/35 px-6 py-2.5 text-center text-[13px] font-medium tracking-[0.02em] text-white hover:border-white hover:bg-white/5"
                 >
-                  Tasar mi auto
+                  Consigna tu vehículo
                 </Link>
               </div>
               {hero && (

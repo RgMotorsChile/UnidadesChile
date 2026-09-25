@@ -2,7 +2,7 @@ export const CRM_VIEWS = [
   { path: "", label: "Todos", origins: [] as readonly string[] },
   { path: "reservas", label: "Reservas", origins: ["reserva"] },
   { path: "creditos", label: "Créditos", origins: ["financia", "credito"] },
-  { path: "tasaciones", label: "Tasaciones", origins: ["tasacion"] },
+  { path: "consignas", label: "Consignas", origins: ["consigna", "tasacion"] },
   { path: "visitas", label: "Visitas / test drive", origins: ["visita", "prueba-manejo"] },
   { path: "pedidos", label: "Pedidos", origins: ["auto-pedido"] },
   { path: "alertas", label: "Alertas de precio", origins: ["alerta-precio"] },
