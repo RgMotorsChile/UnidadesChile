@@ -1,6 +1,6 @@
 import { deny, isAdminRequest } from "./_auth.js";
 import { orderGalleryWithCover } from "./_cover.js";
-import { dbReader, supabaseAdmin, tenantId } from "./_db.js";
+import { CATALOG_ANON_SELECT, dbReader, supabaseAdmin, tenantId } from "./_db.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -56,7 +56,7 @@ export default async function handler(
   if (method === "GET") {
     const { data, error } = await reader
       .from("catalog_vehicles")
-      .select("*")
+      .select(CATALOG_ANON_SELECT)
       .eq("tenant_id", tenant)
       .order("updated_at", { ascending: false });
     if (error) return res.status(500).json({ ok: false, error: error.message });

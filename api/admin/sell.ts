@@ -1,5 +1,5 @@
 import { deny, isAdminRequest } from "./_auth.js";
-import { supabaseAdmin, tenantId } from "./_db.js";
+import { CATALOG_ANON_SELECT, supabaseAdmin, tenantId } from "./_db.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -20,7 +20,7 @@ export default async function handler(
 
   const { data: row } = await writer
     .from("catalog_vehicles")
-    .select("*")
+    .select(CATALOG_ANON_SELECT)
     .eq("tenant_id", tenant)
     .eq("slug", slug)
     .maybeSingle();
