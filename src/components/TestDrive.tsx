@@ -75,7 +75,7 @@ export function TestDrive({ car }: { car: Car }) {
               type="button"
               disabled={d < cal.today}
               onClick={() => setDay(d)}
-              className={`min-h-9 rounded-md py-2 ${}
+              className={`min-h-9 rounded-md py-2 ${
                 d < cal.today
                   ? "text-white/15"
                   : day === d

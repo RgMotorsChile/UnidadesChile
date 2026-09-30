@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Fuel, Gauge, MapPin, Printer, Settings2, User, Waypoints } from "lucide-react";
 import { clp, km } from "../lib/format";
@@ -21,8 +21,11 @@ export function Auto() {
   const [alerta, setAlerta] = useState(false);
   const compare = useCompare();
 
+  const viewed = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (id) void bumpViews(id);
+    if (!id || viewed.current === id) return;
+    viewed.current = id;
+    void bumpViews(id);
   }, [id, bumpViews]);
 
   if (!car) {
