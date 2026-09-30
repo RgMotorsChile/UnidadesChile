@@ -48,16 +48,135 @@ function asCarroceria(v: string): Vehicle["carroceria"] {
   return "Pickup";
 }
 
-function rowToVehicle(row: Record<string, unknown>): Vehicle {
-  const gallery = Array.isArray(row.gallery)
-    ? (row.gallery as string[]).filter(Boolean)
-    : [];
+/** Techo público de catalog_vehicles. Nunca incluye columnas internas. */
+const PUBLIC_VEHICLE_COLUMNS = [
+  "id",
+  "tenant_id",
+  "slug",
+  "plate",
+  "plate_norm",
+  "brand",
+  "model",
+  "version",
+  "year",
+  "price",
+  "list_price",
+  "km",
+  "fuel",
+  "transmission",
+  "body_type",
+  "location",
+  "image",
+  "gallery",
+  "spin",
+  "engine",
+  "power",
+  "traction",
+  "doors",
+  "owners",
+  "featured",
+  "status",
+  "has_real_photos",
+  "highlights",
+  "created_at",
+  "updated_at",
+] as const;
+
+/** Solo lo que la vitrina mapea a Vehicle. list_price alimenta el precio de mercado. */
+const VEHICLE_COLUMNS = [
+  "slug",
+  "plate",
+  "brand",
+  "model",
+  "version",
+  "year",
+  "price",
+  "list_price",
+  "km",
+  "fuel",
+  "transmission",
+  "body_type",
+  "location",
+  "image",
+  "gallery",
+  "traction",
+  "owners",
+  "featured",
+  "status",
+  "highlights",
+  "created_at",
+  "updated_at",
+] as const;
+
+/** tenants: la UI solo necesita id. El techo público es id, slug, name, active. */
+const PUBLIC_TENANT_COLUMNS = ["id", "slug", "name", "active"] as const;
+const TENANT_COLUMNS = ["id"] as const;
+
+const INTERNAL_COLUMNS = new Set([
+  "supplier",
+  "payload",
+  "tech_review",
+  "circ_permit",
+  "cover_locked",
+]);
+
+type CatalogVehicleRow = {
+  slug: string | null;
+  plate: string | null;
+  brand: string | null;
+  model: string | null;
+  version: string | null;
+  year: number | null;
+  price: number | null;
+  list_price: number | null;
+  km: number | null;
+  fuel: string | null;
+  transmission: string | null;
+  body_type: string | null;
+  location: string | null;
+  image: string | null;
+  gallery: string[] | null;
+  traction: string | null;
+  owners: number | null;
+  featured: boolean | null;
+  status: string | null;
+  highlights: string[] | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+type JoinColumns<T extends readonly string[]> = T extends readonly [
+  infer Head extends string,
+  ...infer Rest extends readonly string[],
+]
+  ? Rest["length"] extends 0
+    ? Head
+    : `${Head},${JoinColumns<Rest>}`
+  : never;
+
+function explicitSelect<const T extends readonly string[]>(
+  columns: T,
+  allowed: readonly string[],
+): JoinColumns<T> {
+  const permitidas = new Set<string>(allowed);
+  if (!columns.length) throw new Error("Select de catálogo vacío");
+  for (const column of columns) {
+    if (column === "*" || INTERNAL_COLUMNS.has(column) || !permitidas.has(column)) {
+      throw new Error(`Columna no permitida en select público: ${column}`);
+    }
+  }
+  return columns.join(",") as JoinColumns<T>;
+}
+
+const VEHICLE_SELECT = explicitSelect(VEHICLE_COLUMNS, PUBLIC_VEHICLE_COLUMNS);
+const TENANT_SELECT = explicitSelect(TENANT_COLUMNS, PUBLIC_TENANT_COLUMNS);
+
+function rowToVehicle(row: CatalogVehicleRow): Vehicle {
+  const gallery = Array.isArray(row.gallery) ? row.gallery.filter(Boolean) : [];
   const image = String(row.image || "");
   const imagenes = gallery.length ? gallery : image ? [image] : [];
   const precio = Number(row.price) || 0;
-  const highlights = Array.isArray(row.highlights)
-    ? (row.highlights as string[])
-    : [];
+  const highlights = Array.isArray(row.highlights) ? row.highlights : [];
   const certificado = highlights.some((h) => /certific/i.test(h));
 
   return {
@@ -97,20 +216,20 @@ export async function fetchUcCatalogFromSupabase(): Promise<Vehicle[] | null> {
   try {
     const { data: tenant, error: tErr } = await sb
       .from("tenants")
-      .select("id")
+      .select(TENANT_SELECT)
       .eq("slug", UC_TENANT_SLUG)
       .maybeSingle();
     if (tErr || !tenant) return null;
 
     const { data, error } = await sb
       .from("catalog_vehicles")
-      .select("*")
+      .select(VEHICLE_SELECT)
       .eq("tenant_id", tenant.id)
       .order("featured", { ascending: false })
       .order("updated_at", { ascending: false });
     if (error || !data) return null;
     return data
-      .map((r) => rowToVehicle(r as Record<string, unknown>))
+      .map((r) => rowToVehicle(r as CatalogVehicleRow))
       .filter((car) => isUnidadesChileStock(car.unidad));
   } catch (err) {
     console.warn("[catalogSupabase] lectura UC falló:", err);
