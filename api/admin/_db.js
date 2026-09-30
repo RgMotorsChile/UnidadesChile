@@ -37,6 +37,36 @@ export function dbReader() {
   return supabaseAdmin() || supabaseAnon();
 }
 
+/**
+ * Lecturas que pueden caer en anon (dbReader). Sin supplier, payload,
+ * tech_review, circ_permit ni cover_locked. La service role sigue escribiendo
+ * por su cuenta en update/upsert.
+ */
+export const CATALOG_ANON_SELECT = [
+  "slug",
+  "plate",
+  "brand",
+  "model",
+  "version",
+  "year",
+  "price",
+  "list_price",
+  "km",
+  "fuel",
+  "transmission",
+  "body_type",
+  "location",
+  "image",
+  "gallery",
+  "traction",
+  "owners",
+  "featured",
+  "status",
+  "highlights",
+  "created_at",
+  "updated_at",
+].join(",");
+
 export async function tenantId(sb) {
   const clients = [sb, supabaseAnon()].filter(Boolean);
   const seen = new Set();

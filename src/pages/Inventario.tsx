@@ -45,7 +45,7 @@ export function Inventario() {
       if (sort === "km") return a.km - b.km;
       return b.mercado - b.precio - (a.mercado - a.precio);
     });
-  }, [marca, modelo, year, carroceria, combustible, transmision, traccion, sort]);
+  }, [cars, marca, modelo, year, carroceria, combustible, transmision, traccion, sort]);
 
   return (
     <div className="relative mx-auto max-w-[1280px] px-4 pb-28 pt-8 sm:px-6 md:px-8">

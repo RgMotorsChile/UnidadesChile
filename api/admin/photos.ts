@@ -1,5 +1,5 @@
 import { deny, isAdminRequest } from "./_auth.js";
-import { dbReader, supabaseAdmin, tenantId } from "./_db.js";
+import { CATALOG_ANON_SELECT, dbReader, supabaseAdmin, tenantId } from "./_db.js";
 import { deleteBlobUrls, isBlobReady, storeMediaFile } from "./_media.js";
 import {
   driveFileId,
@@ -37,7 +37,7 @@ async function loadVehicle(slug: string) {
   if (!tenant) return { error: "Tenant no encontrado.", row: null, tenant: null, sb };
   const { data, error } = await sb
     .from("catalog_vehicles")
-    .select("*")
+    .select(CATALOG_ANON_SELECT)
     .eq("tenant_id", tenant)
     .eq("slug", slug)
     .maybeSingle();
