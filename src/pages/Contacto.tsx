@@ -4,6 +4,7 @@ import { PageTitle } from "../components/PageTitle";
 import { WhatsAppIcon } from "../components/Header";
 import { waLink } from "../lib/config";
 import { newLead } from "../lib/leads";
+import { postForm } from "../lib/consignaSubmit";
 import { useData } from "../store/DataProvider";
 
 export function Contacto() {
@@ -13,6 +14,10 @@ export function Contacto() {
   const [email, setEmail] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [fallback, setFallback] = useState(false);
+  const [website, setWebsite] = useState("");
   const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(settings.mapQuery)}&z=14&output=embed`;
 
   return (
@@ -32,8 +37,15 @@ export function Contacto() {
       <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12">
         <form
           className="rounded-2xl border border-white/[0.08] bg-[#141414] p-5 sm:p-6"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
+            setBusy(true);
+            setError("");
+            setFallback(false);
+            // Antes solo se guardaba en el navegador del visitante y se mostraba "Listo":
+            // el mensaje nunca llegaba a la empresa. Ahora se envía por correo (Resend).
+            const result = await postForm("/api/contacto", { nombre, telefono, email, mensaje, website });
+            setBusy(false);
             void saveLead(
               newLead({
                 origen: "contacto",
@@ -43,6 +55,11 @@ export function Contacto() {
                 mensaje: mensaje || "Consulta desde contacto",
               }),
             );
+            if (!result.ok) {
+              setError(result.error || "No se pudo enviar. Intenta de nuevo.");
+              setFallback(Boolean(result.fallback));
+              return;
+            }
             setSent(true);
           }}
         >
@@ -84,6 +101,7 @@ export function Contacto() {
                     className="field mt-1"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </label>
               </div>
@@ -94,10 +112,41 @@ export function Contacto() {
                   value={mensaje}
                   onChange={(e) => setMensaje(e.target.value)}
                   placeholder="Cuéntanos qué buscas"
+                  required
                 />
               </label>
-              <button type="submit" className="rounded-xl bg-brand py-3 font-semibold hover:bg-brand-dark">
-                Enviar consulta
+              <input
+                type="text"
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                className="hidden"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden
+              />
+              {error && (
+                <div className="text-sm text-brand" role="alert">
+                  <p>{error}</p>
+                  {fallback && (
+                    <a
+                      href={waLink(`Hola, soy ${nombre}. ${mensaje || "Quiero información."}`, settings.whatsapp)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white"
+                    >
+                      <WhatsAppIcon className="h-4 w-4" />
+                      Enviar por WhatsApp
+                    </a>
+                  )}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={busy}
+                className="rounded-xl bg-brand py-3 font-semibold hover:bg-brand-dark disabled:opacity-60"
+              >
+                {busy ? "Enviando…" : "Enviar consulta"}
               </button>
             </div>
           )}

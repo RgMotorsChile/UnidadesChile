@@ -13,7 +13,7 @@ function isL200(car: Vehicle) {
 }
 
 export function Home() {
-  const { published, settings } = useData();
+  const { published, settings, ready } = useData();
   const cheapestL200 = published
     .filter((car) => isL200(car) && car.precio > 0)
     .reduce<Vehicle | null>((best, car) => {
@@ -37,15 +37,25 @@ export function Home() {
         description="Autos seleccionados en Puerto Montt. Precio bajo mercado, inspección 180 puntos y financiamiento Autofin."
       />
       <div className="flex flex-col">
-        <section className="relative isolate min-h-[calc(100svh-4.75rem)] overflow-x-clip bg-black">
+        <section className="relative isolate overflow-x-clip bg-black lg:min-h-[calc(100svh-4.75rem)]">
+          {/*
+            Móvil/tablet: la foto (16:9, fondo negro) va arriba completa con object-contain,
+            sin recorte ni deformación; el texto queda debajo. Desktop: fondo a la derecha (cover).
+            width/height reservan el espacio (sin layout shift).
+          */}
           <img
             src="/cars/hero-l200.png"
             alt="Mitsubishi L200 roja"
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[72%_center] sm:object-[64%_48%] lg:left-auto lg:w-[74%]"
+            width={1280}
+            height={720}
+            fetchPriority="high"
+            decoding="async"
+            className="pointer-events-none relative block aspect-[16/9] h-auto max-h-[62svh] w-full object-contain object-center lg:absolute lg:inset-y-0 lg:right-0 lg:left-auto lg:aspect-auto lg:h-full lg:max-h-none lg:w-[74%] lg:object-cover lg:object-[64%_48%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black from-0% via-black/70 via-[36%] to-transparent to-[72%] lg:via-black/40 lg:via-[20%] lg:to-transparent lg:to-[48%]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[16/9] max-h-[62svh] w-full bg-gradient-to-b from-transparent from-60% to-black lg:hidden" />
+          <div className="absolute inset-0 hidden bg-gradient-to-r from-black from-0% via-black/40 via-[20%] to-transparent to-[48%] lg:block" />
 
-          <div className="relative mx-auto flex min-h-[calc(100svh-4.75rem)] max-w-[1400px] flex-col justify-end px-4 pb-8 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:px-6 lg:justify-center lg:px-10 lg:pb-0 lg:pt-16">
+          <div className="relative mx-auto flex max-w-[1400px] flex-col px-4 pb-10 pt-2 sm:px-6 sm:pt-4 lg:min-h-[calc(100svh-4.75rem)] lg:justify-center lg:px-10 lg:pb-0 lg:pt-16">
             <div className="max-w-[min(540px,42vw)] max-lg:max-w-[540px]">
               <p className="text-[13px] font-medium text-white/55">
                 {settings.address}
@@ -75,6 +85,9 @@ export function Home() {
                   Consigna tu vehículo
                 </Link>
               </div>
+              {!cheapestL200 && !ready && (
+                <div aria-hidden className="mt-7 h-[106px] w-full max-w-[220px] lg:hidden" />
+              )}
               {cheapestL200 && (
                 <Link
                   to={`/catalogo/${cheapestL200.id}`}

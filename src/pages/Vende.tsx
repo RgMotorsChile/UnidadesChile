@@ -25,6 +25,7 @@ export function Vende() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [fallback, setFallback] = useState(false);
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -43,6 +44,7 @@ export function Vende() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    setFallback(false);
     setBusy(true);
     try {
       const fotos = [];
@@ -72,6 +74,7 @@ export function Vende() {
       );
       if (!result.ok) {
         setError(result.error || "No se pudo enviar el correo.");
+        setFallback(Boolean(result.fallback));
         return;
       }
       setSent(true);
@@ -279,7 +282,24 @@ export function Vende() {
                   </ul>
                 )}
               </div>
-              {error && <p className="text-sm text-brand">{error}</p>}
+              {error && (
+                <div className="text-sm text-brand" role="alert">
+                  <p>{error}</p>
+                  {fallback && (
+                    <a
+                      href={waLink(
+                        `Hola, quiero consignar mi vehículo: ${[marca, modelo, year, patente].filter(Boolean).join(" ")}${kms ? `, ${kms} km` : ""}. Soy ${nombre}.`,
+                        settings.whatsapp,
+                      )}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white"
+                    >
+                      Enviar por WhatsApp
+                    </a>
+                  )}
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={busy}

@@ -16,7 +16,7 @@ import { useData } from "../store/DataProvider";
 
 export function Auto() {
   const { id } = useParams();
-  const { published, bumpViews, saveLead, settings } = useData();
+  const { published, bumpViews, saveLead, settings, ready } = useData();
   const car = id ? published.find((v) => v.id === id) : undefined;
   const [shot, setShot] = useState(0);
   const [alerta, setAlerta] = useState(false);
@@ -28,6 +28,22 @@ export function Auto() {
     viewed.current = id;
     void bumpViews(id);
   }, [id, bumpViews]);
+
+  if (!car && !ready) {
+    // Mientras llega el catálogo: esqueleto estable (antes parpadeaba "Unidad no encontrada").
+    return (
+      <div className="mx-auto max-w-[1280px] px-4 pb-28 pt-5 sm:px-6 md:px-8" aria-busy="true">
+        <div className="mt-9 grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
+          <div className="aspect-[16/11] w-full animate-pulse rounded-[16px] bg-white/[0.06] sm:rounded-[20px]" />
+          <div className="space-y-4">
+            <div className="h-4 w-32 animate-pulse rounded bg-white/[0.06]" />
+            <div className="h-10 w-3/4 animate-pulse rounded bg-white/[0.06]" />
+            <div className="h-10 w-1/2 animate-pulse rounded bg-white/[0.06]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!car) {
     return (

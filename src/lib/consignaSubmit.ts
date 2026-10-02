@@ -53,12 +53,20 @@ export async function compressFoto(file: File): Promise<FotoPayload> {
   };
 }
 
-export async function enviarConsigna(payload: ConsignaPayload): Promise<{ ok: boolean; error?: string }> {
-  const res = await fetch("/api/consigna", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+export type SubmitResult = { ok: boolean; error?: string; fallback?: boolean };
+
+/** POST JSON a un formulario del sitio. `fallback` = mostrar WhatsApp (correo no salió). */
+export async function postForm(url: string, payload: unknown): Promise<SubmitResult> {
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    return { ok: false, fallback: true, error: "Sin conexión. Escríbenos por WhatsApp." };
+  }
   let data: { ok?: boolean; error?: string } = {};
   try {
     data = (await res.json()) as { ok?: boolean; error?: string };
@@ -66,7 +74,15 @@ export async function enviarConsigna(payload: ConsignaPayload): Promise<{ ok: bo
     data = {};
   }
   if (!res.ok || !data.ok) {
-    return { ok: false, error: data.error || "No se pudo enviar. Intenta de nuevo." };
+    return {
+      ok: false,
+      fallback: res.status >= 500 || res.status === 429,
+      error: data.error || "No se pudo enviar. Intenta de nuevo.",
+    };
   }
   return { ok: true };
+}
+
+export function enviarConsigna(payload: ConsignaPayload): Promise<SubmitResult> {
+  return postForm("/api/consigna", payload);
 }

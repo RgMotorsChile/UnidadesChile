@@ -1,3 +1,16 @@
+import {
+  FALLBACK_ERROR,
+  clean,
+  isEmail,
+  isHoneypot,
+  isPhone,
+  mailConfig,
+  rateLimited,
+  rowsHtml,
+  sendResend,
+  untrustedOrigin,
+} from "./_lead.js";
+
 type FotoIn = { name?: string; type?: string; data?: string };
 
 type Body = {
@@ -11,93 +24,90 @@ type Body = {
   kms?: string;
   notas?: string;
   fotos?: FotoIn[];
+  website?: string;
 };
-
-function esc(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function text(value: unknown) {
-  return String(value ?? "").trim();
-}
 
 export const config = {
   api: { bodyParser: { sizeLimit: "4mb" } },
 };
 
-export default async function handler(
-  req: { method?: string; body?: Body },
-  res: { status: (code: number) => { json: (body: unknown) => void } },
-) {
+type Req = { method?: string; body?: Body; headers?: Record<string, string | undefined> };
+type Res = { status: (code: number) => { json: (body: unknown) => void } };
+
+export default async function handler(req: Req, res: Res) {
   if (req.method !== "POST") {
     return res.status(405).json({ ok: false, error: "Método no permitido." });
   }
+  if (untrustedOrigin(req)) {
+    return res.status(403).json({ ok: false, error: "Origen no permitido." });
+  }
+  if (rateLimited(req, "consigna", 5)) {
+    return res.status(429).json({ ok: false, error: "Demasiados envíos. Intenta en un minuto." });
+  }
 
-  const b = req.body || {};
-  const nombre = text(b.nombre);
-  const telefono = text(b.telefono);
-  const email = text(b.email);
-  const patente = text(b.patente).toUpperCase();
-  const marca = text(b.marca);
-  const modelo = text(b.modelo);
-  const year = text(b.year);
-  const kms = text(b.kms);
-  const notas = text(b.notas);
+  const b = req.body && typeof req.body === "object" ? req.body : {};
+  if (isHoneypot(b)) return res.status(200).json({ ok: true });
+
+  const nombre = clean(b.nombre, 80);
+  const telefono = clean(b.telefono, 30);
+  const email = clean(b.email, 120);
+  const patente = clean(b.patente, 10).toUpperCase();
+  const marca = clean(b.marca, 40);
+  const modelo = clean(b.modelo, 60);
+  const year = clean(b.year, 4);
+  const kms = clean(b.kms, 12);
+  const notas = clean(b.notas, 1500);
 
   if (!nombre || !telefono) {
     return res.status(400).json({ ok: false, error: "Faltan nombre o WhatsApp." });
   }
+  if (!isPhone(telefono)) {
+    return res.status(400).json({ ok: false, error: "Teléfono inválido." });
+  }
+  if (email && !isEmail(email)) {
+    return res.status(400).json({ ok: false, error: "Correo inválido." });
+  }
   if (!marca && !modelo && !patente) {
     return res.status(400).json({ ok: false, error: "Indica al menos marca, modelo o patente." });
+  }
+  if (year && !/^\d{4}$/.test(year)) {
+    return res.status(400).json({ ok: false, error: "Año inválido." });
   }
 
   const rawFotos = Array.isArray(b.fotos) ? b.fotos.slice(0, 8) : [];
   const attachments = rawFotos
     .map((f, i) => {
-      const data = text(f.data).replace(/^data:[^;]+;base64,/, "");
-      if (!data || data.length > 900_000) return null;
-      const filename = text(f.name) || `foto-${i + 1}.jpg`;
+      const data = clean(f?.data, 1_000_000).replace(/^data:[^;]+;base64,/, "");
+      if (!data || data.length > 900_000 || !/^[A-Za-z0-9+/=]+$/.test(data)) return null;
+      const base = clean(f?.name, 60).replace(/[^\w.-]+/g, "_") || `foto-${i + 1}`;
+      const filename = /\.(jpe?g|png|webp)$/i.test(base) ? base : `${base}.jpg`;
       return { filename, content: data };
     })
     .filter((x): x is { filename: string; content: string } => Boolean(x));
 
-  const key = process.env.RESEND_API_KEY?.trim();
+  const { key, to, from } = mailConfig();
   if (!key) {
-    return res.status(500).json({ ok: false, error: "Correo no configurado." });
+    console.error("[consigna] RESEND_API_KEY no configurada");
+    return res.status(503).json({ ok: false, fallback: "whatsapp", error: FALLBACK_ERROR });
   }
 
-  const to = process.env.CONSIGNA_TO?.trim() || "administracion@rgmotors.cl";
-  const from =
-    process.env.CONSIGNA_FROM?.trim() || "Unidades Chile <noreply@rgmotorschile.cl>";
   const titulo = [marca, modelo, year, patente].filter(Boolean).join(" ") || "sin ficha";
-
-  const html = `
-    <h2>Nueva consignación — Unidades Chile</h2>
-    <p>Un cliente dejó su vehículo para que lo contacten.</p>
-    <table cellpadding="6" style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
-      <tr><td><b>Nombre</b></td><td>${esc(nombre)}</td></tr>
-      <tr><td><b>WhatsApp</b></td><td>${esc(telefono)}</td></tr>
-      <tr><td><b>Correo</b></td><td>${esc(email || "—")}</td></tr>
-      <tr><td><b>Patente</b></td><td>${esc(patente || "—")}</td></tr>
-      <tr><td><b>Marca</b></td><td>${esc(marca || "—")}</td></tr>
-      <tr><td><b>Modelo</b></td><td>${esc(modelo || "—")}</td></tr>
-      <tr><td><b>Año</b></td><td>${esc(year || "—")}</td></tr>
-      <tr><td><b>Kilometraje</b></td><td>${esc(kms || "—")}</td></tr>
-      <tr><td><b>Notas</b></td><td>${esc(notas || "—")}</td></tr>
-      <tr><td><b>Fotos adjuntas</b></td><td>${attachments.length}</td></tr>
-    </table>
-    <p style="margin-top:16px">Responder a este correo o escribir al WhatsApp del cliente.</p>
-  `;
-
   const payload: Record<string, unknown> = {
     from,
     to: [to],
     subject: `Consigna: ${titulo} · ${nombre}`,
-    html,
+    html: rowsHtml("Nueva consignación — Unidades Chile", [
+      ["Nombre", nombre],
+      ["WhatsApp", telefono],
+      ["Correo", email],
+      ["Patente", patente],
+      ["Marca", marca],
+      ["Modelo", modelo],
+      ["Año", year],
+      ["Kilometraje", kms],
+      ["Notas", notas],
+      ["Fotos adjuntas", attachments.length],
+    ]),
     text: [
       `Consigna Unidades Chile`,
       `Nombre: ${nombre}`,
@@ -114,20 +124,9 @@ export default async function handler(
   if (email) payload.reply_to = email;
   if (attachments.length) payload.attachments = attachments;
 
-  const sent = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
+  const sent = await sendResend(payload);
   if (!sent.ok) {
-    const detail = await sent.text();
-    console.error("[consigna] Resend:", sent.status, detail.slice(0, 400));
-    return res.status(502).json({ ok: false, error: "No se pudo enviar el correo." });
+    return res.status(503).json({ ok: false, fallback: "whatsapp", error: FALLBACK_ERROR });
   }
-
   return res.status(200).json({ ok: true });
 }

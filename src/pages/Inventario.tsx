@@ -6,12 +6,12 @@ import { LeadModals } from "../components/LeadModals";
 import { useCompare } from "../components/Compare";
 import { CarFront, Cog, Gauge, Layers } from "lucide-react";
 import { Emblem } from "../components/Logo";
-import { usePublishedCars } from "../store/DataProvider";
+import { useData } from "../store/DataProvider";
 
 type Sort = "ahorro" | "precio-asc" | "precio-desc" | "km";
 
 export function Inventario() {
-  const cars = usePublishedCars();
+  const { published: cars, ready } = useData();
   const marcas = [...new Set(cars.map((c) => c.marca))].sort();
   const modelos = [...new Set(cars.map((c) => c.modelo))].sort();
   const years = [...new Set(cars.map((c) => c.year))].sort((a, b) => b - a);
@@ -63,7 +63,7 @@ export function Inventario() {
           </p>
         </div>
         <div className="text-right">
-          <p className="text-[28px] font-semibold leading-none sm:text-[48px] md:text-[64px]">{list.length}</p>
+          <p className="text-[28px] font-semibold leading-none sm:text-[48px] md:text-[64px]">{ready ? list.length : "—"}</p>
           <p className="mt-1 text-[11px] text-white/45 sm:text-sm">unidades disponibles</p>
         </div>
       </div>
@@ -172,9 +172,15 @@ export function Inventario() {
         </aside>
 
         <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
-          {list.map((car) => (
-            <CarCard key={car.id} car={car} />
-          ))}
+          {!ready && list.length === 0
+            ? Array.from({ length: 6 }, (_, i) => (
+                <div
+                  key={i}
+                  aria-hidden
+                  className="h-[360px] animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.04]"
+                />
+              ))
+            : list.map((car) => <CarCard key={car.id} car={car} />)}
         </div>
       </div>
       <div className="mt-8 flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-[#141414] px-4 py-5 text-center">

@@ -72,7 +72,11 @@ const fallbackSettings: SiteSettings = {
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [vehicles, setVehicles] = useState<Vehicle[]>(seedVehicles);
+  // Con Supabase no se pinta el seed local primero: antes se mostraba el seed y ~1-2 s
+  // después se reemplazaba por el stock real (otras unidades y fotos) → parpadeo.
+  const [vehicles, setVehicles] = useState<Vehicle[]>(() =>
+    isSupabaseConfigured() ? [] : seedVehicles,
+  );
   const [catalogSource, setCatalogSource] = useState<"supabase" | "local">("local");
   const [publications, setPublications] = useState<Publication[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -80,12 +84,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [settings, setSettingsState] = useState<SiteSettings>(fallbackSettings);
 
   const refresh = useCallback(async () => {
-    let remote: Vehicle[] | null = null;
-    if (isSupabaseConfigured()) {
-      remote = await fetchUcCatalogFromSupabase();
-    }
-
-    const [v, p, l, m, s, plates] = await Promise.all([
+    const [remote, v, p, l, m, s, plates] = await Promise.all([
+      isSupabaseConfigured() ? fetchUcCatalogFromSupabase() : Promise.resolve(null),
       vehiclesRepo.all(),
       publicationsRepo.all(),
       leadsRepo.all(),
@@ -106,6 +106,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
           ),
         ),
       );
+      setCatalogSource("local");
+    } else {
+      setVehicles(seedVehicles);
       setCatalogSource("local");
     }
     setPublications(p);
@@ -184,12 +187,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         await refresh();
       },
       bumpViews: async (id) => {
-        if (catalogSource === "supabase") {
-          setVehicles((prev) =>
-            prev.map((x) => (x.id === id ? { ...x, vistas: x.vistas + 1 } : x)),
-          );
-          return;
-        }
+        // En Supabase las vistas no se persisten desde la vitrina; actualizar el estado
+        // re-renderizaba todo el catálogo al abrir una ficha.
+        if (catalogSource === "supabase") return;
         const v = vehicles.find((x) => x.id === id);
         if (!v) return;
         await vehiclesRepo.save({ ...v, vistas: v.vistas + 1 });
