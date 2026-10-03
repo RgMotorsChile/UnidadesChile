@@ -6,10 +6,12 @@ import {
   isPhone,
   mailConfig,
   rateLimited,
-  rowsHtml,
+  UC_BRAND,
+  sendConfirmation,
   sendResend,
   untrustedOrigin,
 } from "./_lead.js";
+import { isValidEmail, teamEmail, visitorEmail } from "./_email.js";
 
 type FotoIn = { name?: string; type?: string; data?: string };
 
@@ -91,36 +93,16 @@ export default async function handler(req: Req, res: Res) {
     return res.status(503).json({ ok: false, fallback: "whatsapp", error: FALLBACK_ERROR });
   }
 
-  const titulo = [marca, modelo, year, patente].filter(Boolean).join(" ") || "sin ficha";
-  const payload: Record<string, unknown> = {
-    from,
-    to: [to],
-    subject: `Consigna: ${titulo} · ${nombre}`,
-    html: rowsHtml("Nueva consignación — Unidades Chile", [
-      ["Nombre", nombre],
-      ["WhatsApp", telefono],
-      ["Correo", email],
-      ["Patente", patente],
-      ["Marca", marca],
-      ["Modelo", modelo],
-      ["Año", year],
-      ["Kilometraje", kms],
-      ["Notas", notas],
-      ["Fotos adjuntas", attachments.length],
-    ]),
-    text: [
-      `Consigna Unidades Chile`,
-      `Nombre: ${nombre}`,
-      `WhatsApp: ${telefono}`,
-      `Correo: ${email || "—"}`,
-      `Patente: ${patente || "—"}`,
-      `Marca: ${marca || "—"}`,
-      `Modelo: ${modelo || "—"}`,
-      `Año: ${year || "—"}`,
-      `Km: ${kms || "—"}`,
-      `Notas: ${notas || "—"}`,
-    ].join("\n"),
+  const lead = {
+    kind: "consigna" as const,
+    name: nombre,
+    email,
+    phone: telefono,
+    message: notas,
+    vehicle: { brand: marca, model: modelo, year, km: kms, plate: patente, photos: attachments.length },
+    receivedAt: new Date(),
   };
+  const payload: Record<string, unknown> = { from, to: [to], ...teamEmail(UC_BRAND, lead) };
   if (email) payload.reply_to = email;
   if (attachments.length) payload.attachments = attachments;
 
@@ -128,5 +110,6 @@ export default async function handler(req: Req, res: Res) {
   if (!sent.ok) {
     return res.status(503).json({ ok: false, fallback: "whatsapp", error: FALLBACK_ERROR });
   }
+  if (email && isValidEmail(email)) await sendConfirmation(email, visitorEmail(UC_BRAND, lead));
   return res.status(200).json({ ok: true });
 }

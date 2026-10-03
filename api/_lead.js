@@ -63,27 +63,47 @@ export function isPhone(v) {
   return d.length >= 8 && d.length <= 12;
 }
 
-export function rowsHtml(title, rows) {
-  const body = rows
-    .map(
-      ([k, v]) =>
-        `<tr><td style="padding:6px 12px 6px 0;color:#666;vertical-align:top"><b>${esc(k)}</b></td>` +
-        `<td style="padding:6px 0;white-space:pre-wrap">${esc(v === undefined || v === null || v === "" ? "—" : v)}</td></tr>`,
-    )
-    .join("");
-  return `<div style="font-family:system-ui,sans-serif;max-width:600px">
-<h2 style="margin:0 0 12px">${esc(title)}</h2>
-<table cellpadding="0" style="border-collapse:collapse;font-size:14px">${body}</table>
-<p style="margin-top:16px;color:#888;font-size:12px">Enviado desde unidadeschile.cl. Responde este correo para contestarle al cliente.</p>
-</div>`;
-}
-
 export function mailConfig() {
   return {
     key: process.env.RESEND_API_KEY?.trim() || "",
     to: process.env.CONSIGNA_TO?.trim() || "administracion@rgmotors.cl",
     from: process.env.CONSIGNA_FROM?.trim() || "Unidades Chile <noreply@rgmotorschile.cl>",
   };
+}
+
+/** Marca para las plantillas (logo PNG absoluto: Gmail/Outlook no muestran SVG). */
+export const UC_BRAND = {
+  name: "Unidades Chile",
+  site: "https://www.unidadeschile.cl",
+  siteLabel: "unidadeschile.cl",
+  logoUrl: "https://www.unidadeschile.cl/email/uc-logo.png",
+  logoWidth: 240,
+  logoHeight: 45,
+  headerBg: "#0a0a0a",
+  accent: "#ff0c40",
+  accentText: "#ffffff",
+  ink: "#111827",
+  whatsapp: "56973236636",
+  phoneDisplay: "+56 9 7323 6636",
+  email: "administracion@rgmotors.cl",
+  address: "Regimiento #1207, Puerto Montt",
+  hours: "Lun a Sáb · 10:00 a 19:00",
+};
+
+/**
+ * Confirmación al visitante. Nunca lanza ni cambia la respuesta del formulario:
+ * se llama solo después de que el aviso al equipo salió bien.
+ */
+export async function sendConfirmation(toEmail, mail) {
+  try {
+    const { from, to } = mailConfig();
+    const r = await sendResend({ from, to: [toEmail], reply_to: to, ...mail });
+    if (!r.ok) console.warn("[lead] Confirmación al visitante no enviada:", r.reason);
+    return r.ok;
+  } catch (err) {
+    console.warn("[lead] Confirmación falló:", err instanceof Error ? err.message : err);
+    return false;
+  }
 }
 
 /** Envía por Resend. Devuelve { ok, status }. Nunca lanza. */
@@ -101,7 +121,10 @@ export async function sendResend(payload) {
       console.error("[lead] Resend:", res.status, detail.slice(0, 300));
       return { ok: false, status: res.status, reason: "resend_error" };
     }
-    return { ok: true, status: res.status };
+    // Solo el id de Resend (sin destinatario) para rastrear la entrega.
+    const sent = await res.json().catch(() => null);
+    console.info("[lead] Resend id:", sent?.id ?? "?", "·", String(payload?.subject ?? "").slice(0, 60));
+    return { ok: true, status: res.status, id: sent?.id };
   } catch (err) {
     console.error("[lead] Resend falló:", err instanceof Error ? err.message : err);
     return { ok: false, status: 0, reason: "network" };
