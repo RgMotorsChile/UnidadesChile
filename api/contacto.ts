@@ -6,10 +6,12 @@ import {
   isPhone,
   mailConfig,
   rateLimited,
-  rowsHtml,
+  UC_BRAND,
+  sendConfirmation,
   sendResend,
   untrustedOrigin,
 } from "./_lead.js";
+import { isValidEmail, teamEmail, visitorEmail } from "./_email.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -47,21 +49,11 @@ export default async function handler(req: Req, res: Res) {
     return res.status(503).json({ ok: false, fallback: "whatsapp", error: FALLBACK_ERROR });
   }
 
-  const sent = await sendResend({
-    from,
-    to: [to],
-    reply_to: email,
-    subject: `Contacto web: ${nombre}`,
-    html: rowsHtml("Nuevo contacto — Unidades Chile", [
-      ["Nombre", nombre],
-      ["Correo", email],
-      ["WhatsApp", telefono],
-      ["Mensaje", mensaje],
-    ]),
-    text: `Contacto Unidades Chile\nNombre: ${nombre}\nCorreo: ${email}\nWhatsApp: ${telefono}\nMensaje: ${mensaje}`,
-  });
+  const lead = { kind: "contact" as const, name: nombre, email, phone: telefono, message: mensaje, receivedAt: new Date() };
+  const sent = await sendResend({ from, to: [to], reply_to: email, ...teamEmail(UC_BRAND, lead) });
   if (!sent.ok) {
     return res.status(503).json({ ok: false, fallback: "whatsapp", error: FALLBACK_ERROR });
   }
+  if (isValidEmail(email)) await sendConfirmation(email, visitorEmail(UC_BRAND, lead));
   return res.status(200).json({ ok: true });
 }
