@@ -7,7 +7,7 @@ import { useData } from "../store/DataProvider";
 const items = [
   { to: "/", label: "Inicio", icon: Home, end: true },
   { to: "/catalogo", label: "Catálogo", icon: Car, end: false },
-  { to: "/vende-tu-auto", label: "Vender", icon: Tag, end: false },
+  { to: "/consigna-tu-vehiculo", label: "Consigna", icon: Tag, end: false },
 ];
 
 export function MobileNav() {

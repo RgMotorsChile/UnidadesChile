@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { officialAdmin } from "../lib/adminCredentials";
+import { setMeta } from "../lib/documentMeta";
 import { getAdminRecord } from "../store/repo";
 import { hydrateAdminSession, isAdminSession } from "../store/adminAuth";
 import { AdminLayout } from "./AdminLayout";
@@ -34,12 +36,17 @@ export function AdminApp() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    setMeta("robots", "noindex, nofollow");
+    document.title = "Admin | Unidades Chile";
     void (async () => {
+      const official = officialAdmin();
       const rec = await getAdminRecord();
-      const hash = rec && "passwordHash" in rec ? rec.passwordHash : null;
+      const hash =
+        official?.passwordHash ?? (rec && "passwordHash" in rec ? rec.passwordHash : null);
       await hydrateAdminSession(hash);
       setReady(true);
     })();
+    return () => setMeta("robots", "index, follow");
   }, []);
 
   if (!ready) {
@@ -61,7 +68,6 @@ export function AdminApp() {
           <Route element={<InventoryHub />}>
             <Route index element={<CatalogList />} />
             <Route path="medios" element={<MediaPage />} />
-            <Route path="novedades" element={<PublicationsPage />} />
             <Route path="vendidos" element={<SoldList />} />
           </Route>
           <Route path=":id" element={<CatalogEditor />} />
@@ -75,18 +81,21 @@ export function AdminApp() {
               <Route key="index" index element={<LeadsPage origins={[]} />} />
             ),
           )}
+          <Route path="consignas" element={<Navigate to="/admin/crm/tasaciones" replace />} />
         </Route>
 
         <Route path="analitica" element={<ReportsPage />} />
 
         <Route path="config" element={<ConfigHub />}>
           <Route index element={<ContentPage />} />
+          <Route path="novedades" element={<PublicationsPage />} />
           <Route path="acceso" element={<SettingsPage />} />
         </Route>
 
         <Route path="catalogo" element={<Navigate to="/admin/inventario" replace />} />
         <Route path="catalogo/:id" element={<CatalogRedirect />} />
-        <Route path="publicaciones" element={<Navigate to="/admin/inventario/novedades" replace />} />
+        <Route path="publicaciones" element={<Navigate to="/admin/config/novedades" replace />} />
+        <Route path="inventario/novedades" element={<Navigate to="/admin/config/novedades" replace />} />
         <Route path="medios" element={<Navigate to="/admin/inventario/medios" replace />} />
         <Route path="leads" element={<Navigate to="/admin/crm" replace />} />
         <Route path="contenido" element={<Navigate to="/admin/config" replace />} />

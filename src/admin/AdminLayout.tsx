@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Logo } from "../components/Logo";
+import { adminLogout } from "../lib/adminApi";
 import { closeAdminSession } from "../store/adminAuth";
 
 const nav = [
@@ -32,6 +33,7 @@ export function AdminLayout() {
 
   const logout = () => {
     closeAdminSession();
+    void adminLogout();
     navigate("/admin/login");
   };
 
@@ -89,10 +91,15 @@ export function AdminLayout() {
         <header className="sticky top-0 z-20 border-b border-white/10 bg-[#070707]/95 pt-[env(safe-area-inset-top)] backdrop-blur">
           <div className="flex items-center justify-between gap-3 px-4 py-3 lg:px-8">
             <div className="min-w-0">
-              <p className="truncate text-[13px] text-white/50">Unidades Chile · {current.short}</p>
+              <h1 className="truncate text-lg font-bold tracking-tight sm:text-2xl">{current.label}</h1>
+              <p className="truncate text-[12px] text-white/50">Unidades Chile · {current.short}</p>
             </div>
             <div className="flex items-center gap-2">
-              <a href="/" className="hidden text-[12px] font-semibold text-white/70 hover:text-white sm:inline">
+              <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-[#121212] px-3 py-1.5 text-xs sm:flex">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-brand/20 font-bold text-brand">A</span>
+                <span className="font-medium text-white/80">Administrador UC</span>
+              </div>
+              <a href="/" className="hidden text-[12px] font-semibold text-white/70 hover:text-white lg:inline">
                 Ver sitio →
               </a>
               <button

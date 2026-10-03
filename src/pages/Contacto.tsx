@@ -4,6 +4,7 @@ import { PageTitle } from "../components/PageTitle";
 import { WhatsAppIcon } from "../components/Header";
 import { waLink } from "../lib/config";
 import { newLead } from "../lib/leads";
+import { postForm } from "../lib/consignaSubmit";
 import { useData } from "../store/DataProvider";
 
 export function Contacto() {
@@ -13,6 +14,10 @@ export function Contacto() {
   const [email, setEmail] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [fallback, setFallback] = useState(false);
+  const [website, setWebsite] = useState("");
   const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(settings.mapQuery)}&z=14&output=embed`;
 
   return (
@@ -26,14 +31,21 @@ export function Contacto() {
         Contacto y ubicación
       </h1>
       <p className="mt-4 max-w-xl text-white/60">
-        Te asesoramos en la compra o venta. Respuesta el mismo día hábil.
+        Te asesoramos en la compra o en la consignación. Respuesta el mismo día hábil.
       </p>
 
       <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12">
         <form
           className="rounded-2xl border border-white/[0.08] bg-[#141414] p-5 sm:p-6"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
+            setBusy(true);
+            setError("");
+            setFallback(false);
+            // Antes solo se guardaba en el navegador del visitante y se mostraba "Listo":
+            // el mensaje nunca llegaba a la empresa. Ahora se envía por correo (Resend).
+            const result = await postForm("/api/contacto", { nombre, telefono, email, mensaje, website });
+            setBusy(false);
             void saveLead(
               newLead({
                 origen: "contacto",
@@ -43,6 +55,11 @@ export function Contacto() {
                 mensaje: mensaje || "Consulta desde contacto",
               }),
             );
+            if (!result.ok) {
+              setError(result.error || "No se pudo enviar. Intenta de nuevo.");
+              setFallback(Boolean(result.fallback));
+              return;
+            }
             setSent(true);
           }}
         >
@@ -84,6 +101,7 @@ export function Contacto() {
                     className="field mt-1"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </label>
               </div>
@@ -94,10 +112,41 @@ export function Contacto() {
                   value={mensaje}
                   onChange={(e) => setMensaje(e.target.value)}
                   placeholder="Cuéntanos qué buscas"
+                  required
                 />
               </label>
-              <button type="submit" className="rounded-xl bg-brand py-3 font-semibold hover:bg-brand-dark">
-                Enviar consulta
+              <input
+                type="text"
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                className="hidden"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden
+              />
+              {error && (
+                <div className="text-sm text-brand" role="alert">
+                  <p>{error}</p>
+                  {fallback && (
+                    <a
+                      href={waLink(`Hola, soy ${nombre}. ${mensaje || "Quiero información."}`, settings.whatsapp)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white"
+                    >
+                      <WhatsAppIcon className="h-4 w-4" />
+                      Enviar por WhatsApp
+                    </a>
+                  )}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={busy}
+                className="rounded-xl bg-brand py-3 font-semibold hover:bg-brand-dark disabled:opacity-60"
+              >
+                {busy ? "Enviando…" : "Enviar consulta"}
               </button>
             </div>
           )}
@@ -105,8 +154,13 @@ export function Contacto() {
 
         <div className="space-y-3">
           <Info icon={MapPin} title="Showroom" text={settings.address} />
-          <Info icon={Phone} title="Teléfono" text={settings.phoneDisplay} />
-          <Info icon={Mail} title="Correo" text={settings.email} />
+          <Info
+            icon={Phone}
+            title="Teléfono"
+            text={settings.phoneDisplay}
+            href={waLink("Hola, quiero información de Unidades Chile.", settings.whatsapp)}
+          />
+          <Info icon={Mail} title="Correo" text={settings.email} href={`mailto:${settings.email}`} />
           <Info icon={Clock3} title="Horario" text={settings.hours} />
           <a
             href={waLink("Hola, quiero información de Unidades Chile.", settings.whatsapp)}
@@ -149,18 +203,29 @@ function Info({
   icon: Icon,
   title,
   text,
+  href,
 }: {
   icon: typeof MapPin;
   title: string;
   text: string;
+  href?: string;
 }) {
-  return (
-    <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-[#141414] p-4">
+  const inner = (
+    <>
       <Icon size={16} className="mt-0.5 shrink-0 text-brand" />
       <div>
         <p className="text-sm font-semibold">{title}</p>
         <p className="mt-0.5 text-xs text-white/55">{text}</p>
       </div>
-    </div>
+    </>
   );
+  const className = "flex items-start gap-3 rounded-2xl border border-white/10 bg-[#141414] p-4";
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className={`${className} hover:border-white/25`}>
+        {inner}
+      </a>
+    );
+  }
+  return <div className={className}>{inner}</div>;
 }

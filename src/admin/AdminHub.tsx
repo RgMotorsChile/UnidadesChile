@@ -4,7 +4,7 @@ import { NavLink, Outlet } from "react-router-dom";
 export type HubTab = { to: string; label: string; end?: boolean };
 
 export function AdminHub({
-  title,
+  title: _title,
   subtitle,
   tabs,
   extra,
@@ -16,8 +16,7 @@ export function AdminHub({
 }) {
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
-      <p className="mt-1 text-sm text-white/45">{subtitle}</p>
+      <p className="text-sm text-white/45">{subtitle}</p>
       {extra}
       <nav className="mt-6 flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map(({ to, label, end }) => (

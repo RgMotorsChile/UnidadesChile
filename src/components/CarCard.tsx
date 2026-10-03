@@ -4,6 +4,7 @@ import type { Car } from "../data/cars";
 import { clp, km, savingsLabel } from "../lib/format";
 import { useFavorites } from "./Favorites";
 import { useCompare } from "./Compare";
+import { coverSrc } from "../lib/photos";
 import { SafeImg } from "../admin/ui";
 
 type Props = {
@@ -56,7 +57,7 @@ export function CarCard({ car, layout = "grid" }: Props) {
             </p>
             <p className="mt-1 text-[12px] text-white/45">{km(car.km)}</p>
           </div>
-          <PhotoWell src={car.imagenes[0]} alt={alt} className="aspect-[4/3] sm:aspect-auto sm:min-h-[188px]" />
+          <PhotoWell src={coverSrc(car.imagenes)} alt={alt} className="aspect-[4/3] sm:aspect-auto sm:min-h-[188px]" />
         </Link>
       </article>
     );
@@ -65,7 +66,7 @@ export function CarCard({ car, layout = "grid" }: Props) {
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414] shadow-[0_18px_40px_-24px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 hover:border-white/16">
       <Link to={`/catalogo/${car.id}`} className="block">
-        <PhotoWell src={car.imagenes[0]} alt={alt} className="aspect-[4/3] w-full" />
+        <PhotoWell src={coverSrc(car.imagenes)} alt={alt} className="aspect-[4/3] w-full" />
       </Link>
       <button
         type="button"

@@ -1,5 +1,7 @@
+# Unidades Chile — v2 (origen Vercel, no NIC urlfwd)
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /admin/
 
 Sitemap: https://www.unidadeschile.cl/sitemap.xml

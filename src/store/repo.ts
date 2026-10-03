@@ -1,5 +1,5 @@
 import { cars } from "../data/cars";
-import { SITE } from "../lib/config";
+import { PLACEHOLDER_EMAIL, SITE } from "../lib/config";
 import { isUnidadesChileStock } from "../lib/sources";
 import { idbClear, idbDelete, idbGet, idbGetAll, idbPut } from "./idb";
 import type { AdminUser, Lead, MediaAsset, Publication, SiteSettings, Vehicle } from "./types";
@@ -155,6 +155,9 @@ export async function getSettings(): Promise<SiteSettings> {
   const row = await idbGet<SiteSettings & { id: string }>("settings", SETTINGS_ID);
   if (row) {
     const { id: _id, ...rest } = row;
+    if (rest.email === PLACEHOLDER_EMAIL || !rest.email) {
+      return { ...rest, email: SITE.email };
+    }
     return rest;
   }
   return {
@@ -258,4 +261,3 @@ export async function importBackup(dump: {
     }
   }
 }
-

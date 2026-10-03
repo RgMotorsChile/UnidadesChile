@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { officialAdmin } from "../lib/adminCredentials";
 import { exportBackup, getAdminRecord, importBackup, reseedCatalog, saveAdminUser } from "../store/repo";
 import { hashPassword, openAdminSession } from "../store/adminAuth";
 import { useData } from "../store/DataProvider";
@@ -8,7 +9,8 @@ import { AdminField } from "./ui";
 
 export function SettingsPage() {
   const { refresh } = useData();
-  const [user, setUser] = useState("admin");
+  const official = officialAdmin();
+  const [user, setUser] = useState(official?.user ?? "admin");
 
   useEffect(() => {
     void getAdminRecord().then((u) => {
@@ -22,6 +24,12 @@ export function SettingsPage() {
         Acceso, respaldo y stock. Los datos de este panel viven en este navegador.
       </p>
 
+      {official ? (
+        <p className="mt-8 rounded-2xl border border-white/10 p-5 text-sm text-white/55">
+          El acceso de producción es <strong className="text-white">{official.user}</strong>.
+          Para cambiar la clave hay que actualizar las variables en Vercel y volver a desplegar.
+        </p>
+      ) : (
       <form
         className="mt-8 space-y-4"
         onSubmit={async (e) => {
@@ -55,6 +63,7 @@ export function SettingsPage() {
           Guardar acceso
         </button>
       </form>
+      )}
 
       <div className="mt-12 rounded-2xl border border-white/10 p-5">
         <h2 className="font-semibold">Respaldo</h2>

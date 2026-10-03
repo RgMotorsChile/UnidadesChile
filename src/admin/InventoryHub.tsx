@@ -4,12 +4,11 @@ export function InventoryHub() {
   return (
     <AdminHub
       title="Inventario & Multimedia"
-      subtitle="Fichas, fotos y notas. Solo stock de la hoja UNIDADES CHILE."
+      subtitle="Administración integral de vehículos, fichas técnicas y fotos. Solo stock UNIDADES CHILE."
       tabs={[
-        { to: "/admin/inventario", label: "Vehículos", end: true },
-        { to: "/admin/inventario/medios", label: "Multimedia" },
-        { to: "/admin/inventario/novedades", label: "Publicaciones" },
-        { to: "/admin/inventario/vendidos", label: "Vendidos" },
+        { to: "/admin/inventario", label: "Catálogo de Vehículos", end: true },
+        { to: "/admin/inventario/medios", label: "Estudio de Fotos" },
+        { to: "/admin/inventario/vendidos", label: "Historial de Ventas" },
       ]}
     />
   );

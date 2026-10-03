@@ -18,9 +18,8 @@ export function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Dashboard Ejecutivo</h1>
-      <p className="mt-1 text-sm text-white/45">
-        Resumen de inventario, prospectos y reservas · catálogo {catalogSource === "supabase" ? "remoto" : "local"}.
+      <p className="text-sm text-white/45">
+        Resumen gerencial de inventario, prospectos y reservas · catálogo {catalogSource === "supabase" ? "remoto" : "local"}.
       </p>
 
       {waPendiente && (

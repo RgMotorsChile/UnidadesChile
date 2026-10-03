@@ -12,33 +12,11 @@ export const STOCK_SOURCES = {
 
 export const SITE_URL = "https://www.unidadeschile.cl";
 
-/** Únicas patentes publicables: hoja UNIDADES CHILE. */
-export const UNIDADES_CHILE_PLATES = new Set([
-  "SRCP17",
-  "LXCY98",
-  "RPKD45",
-  "RZVK91",
-  "PTFC69",
-  "SFXY80",
-  "SCGJ41",
-  "PSJJ97",
-  "TSXK53",
-  "PYSY84",
-  "SFRT83",
-  "STPZ87",
-  "SSDT39",
-  "RYGB56",
-  "LXBC60",
-  "RZSY35",
-  "SHYL53",
-  "RDHB85",
-  "RHYH38",
-]);
-
 export function plateKey(unidad: string) {
   return unidad.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
 }
 
+/** Fila válida de stock (la pestaña / tenant aísla de RG). */
 export function isUnidadesChileStock(unidad: string) {
-  return UNIDADES_CHILE_PLATES.has(plateKey(unidad));
+  return plateKey(unidad).length >= 5;
 }

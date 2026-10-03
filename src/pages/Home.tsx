@@ -2,27 +2,32 @@ import { Link } from "react-router-dom";
 import { Clock3, MapPin, Navigation } from "lucide-react";
 import { CarCard } from "../components/CarCard";
 import { TrustBar } from "../components/TrustBar";
-import { clp } from "../lib/format";
+import { clp, savingsLabel } from "../lib/format";
+import { hasRemotePhotos } from "../lib/photos";
 import { useData } from "../store/DataProvider";
 import { PageTitle } from "../components/PageTitle";
+import type { Vehicle } from "../store/types";
+
+function isL200(car: Vehicle) {
+  return /l200/i.test(`${car.marca} ${car.modelo} ${car.version}`);
+}
 
 export function Home() {
-  const { published, settings } = useData();
-  const hero =
-    published.find((c) => /l200|katana/i.test(`${c.modelo} ${c.version}`)) ??
-    published.find((c) => c.carroceria === "Pickup") ??
-    published[0] ?? {
-      marca: "Mitsubishi",
-      modelo: "L200",
-      year: 2023,
-      precio: 19_890_000,
-    };
-  const rail = (published.filter((c) => c.destacado).length >= 3
-    ? published.filter((c) => c.destacado)
-    : published
-  ).slice(0, 3);
+  const { published, settings, ready } = useData();
+  const cheapestL200 = published
+    .filter((car) => isL200(car) && car.precio > 0)
+    .reduce<Vehicle | null>((best, car) => {
+      if (!best || car.precio < best.precio) return car;
+      return best;
+    }, null);
+  const l200Ahorro = cheapestL200
+    ? savingsLabel(cheapestL200.precio, cheapestL200.mercado)
+    : null;
+  const withPhotos = published.filter((car) => hasRemotePhotos(car.imagenes));
+  const featuredPhotos = withPhotos.filter((c) => c.destacado);
+  const rail = (featuredPhotos.length >= 3 ? featuredPhotos : withPhotos).slice(0, 3);
   const railIds = new Set(rail.map((c) => c.id));
-  const preview = published.filter((car) => !railIds.has(car.id)).slice(0, 3);
+  const preview = withPhotos.filter((car) => !railIds.has(car.id)).slice(0, 3);
   const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(settings.mapQuery)}&z=14&output=embed`;
 
   return (
@@ -32,15 +37,25 @@ export function Home() {
         description="Autos seleccionados en Puerto Montt. Precio bajo mercado, inspección 180 puntos y financiamiento Autofin."
       />
       <div className="flex flex-col">
-        <section className="relative isolate min-h-[calc(100svh-4.75rem)] overflow-x-clip bg-black">
+        <section className="relative isolate overflow-x-clip bg-black lg:min-h-[calc(100svh-4.75rem)]">
+          {/*
+            Móvil/tablet: la foto (16:9, fondo negro) va arriba completa con object-contain,
+            sin recorte ni deformación; el texto queda debajo. Desktop: fondo a la derecha (cover).
+            width/height reservan el espacio (sin layout shift).
+          */}
           <img
             src="/cars/hero-l200.png"
             alt="Mitsubishi L200 roja"
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[72%_center] sm:object-[64%_48%] lg:left-auto lg:w-[74%]"
+            width={1280}
+            height={720}
+            fetchPriority="high"
+            decoding="async"
+            className="pointer-events-none relative block aspect-[16/9] h-auto max-h-[62svh] w-full object-contain object-center lg:absolute lg:inset-y-0 lg:right-0 lg:left-auto lg:aspect-auto lg:h-full lg:max-h-none lg:w-[74%] lg:object-cover lg:object-[64%_48%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black from-0% via-black/70 via-[36%] to-transparent to-[72%] lg:via-black/40 lg:via-[20%] lg:to-transparent lg:to-[48%]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[16/9] max-h-[62svh] w-full bg-gradient-to-b from-transparent from-60% to-black lg:hidden" />
+          <div className="absolute inset-0 hidden bg-gradient-to-r from-black from-0% via-black/40 via-[20%] to-transparent to-[48%] lg:block" />
 
-          <div className="relative mx-auto flex min-h-[calc(100svh-4.75rem)] max-w-[1400px] flex-col justify-end px-4 pb-8 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:px-6 lg:justify-center lg:px-10 lg:pb-0 lg:pt-16">
+          <div className="relative mx-auto flex max-w-[1400px] flex-col px-4 pb-10 pt-2 sm:px-6 sm:pt-4 lg:min-h-[calc(100svh-4.75rem)] lg:justify-center lg:px-10 lg:pb-0 lg:pt-16">
             <div className="max-w-[min(540px,42vw)] max-lg:max-w-[540px]">
               <p className="text-[13px] font-medium text-white/55">
                 {settings.address}
@@ -64,40 +79,51 @@ export function Home() {
                   Explorar catálogo
                 </Link>
                 <Link
-                  to="/vende-tu-auto"
+                  to="/consigna-tu-vehiculo"
                   className="rounded-full border border-white/35 px-6 py-2.5 text-center text-[13px] font-medium tracking-[0.02em] text-white hover:border-white hover:bg-white/5"
                 >
-                  Tasar mi auto
+                  Consigna tu vehículo
                 </Link>
               </div>
-              {hero && (
-                <div className="mt-7 w-full max-w-[220px] rounded-2xl border border-white/10 bg-black/45 px-4 py-3.5 backdrop-blur-md lg:hidden">
-                  <p className="text-[12px] font-medium text-white/55">
-                    {hero.marca} {hero.modelo} {hero.year}
+              {!cheapestL200 && !ready && (
+                <div aria-hidden className="mt-7 h-[106px] w-full max-w-[220px] lg:hidden" />
+              )}
+              {cheapestL200 && (
+                <Link
+                  to={`/catalogo/${cheapestL200.id}`}
+                  className="mt-7 block w-full max-w-[220px] rounded-2xl border border-white/10 bg-black/45 px-4 py-3.5 backdrop-blur-md lg:hidden"
+                >
+                  <p className="text-[12px] font-medium text-white/55">Mitsubishi L200</p>
+                  <p className="mt-1 text-[13px] text-white/45">Desde</p>
+                  <p className="text-[22px] font-semibold tracking-[-0.03em] text-white">
+                    {clp(cheapestL200.precio)}
                   </p>
-                  <p className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-white">
-                    {clp(hero.precio)}
-                  </p>
-                  <span className="mt-2 inline-flex rounded-full bg-brand/90 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.04em] text-white">
-                    −8% vs mercado
-                  </span>
-                </div>
+                  {l200Ahorro && (
+                    <span className="mt-2 inline-flex rounded-full bg-brand/90 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.04em] text-white">
+                      {l200Ahorro}
+                    </span>
+                  )}
+                </Link>
               )}
             </div>
           </div>
 
-          {hero && (
-            <div className="absolute right-5 z-20 hidden w-[min(220px,calc(100%-2rem))] rounded-2xl border border-white/10 bg-black/40 px-4 py-3.5 backdrop-blur-md sm:right-10 sm:bottom-[16%] lg:right-[5%] lg:block">
-              <p className="text-[12px] font-medium text-white/55">
-                {hero.marca} {hero.modelo} {hero.year}
+          {cheapestL200 && (
+            <Link
+              to={`/catalogo/${cheapestL200.id}`}
+              className="absolute right-5 z-20 hidden w-[min(220px,calc(100%-2rem))] rounded-2xl border border-white/10 bg-black/40 px-4 py-3.5 backdrop-blur-md hover:border-white/25 sm:right-10 sm:bottom-[16%] lg:right-[5%] lg:block"
+            >
+              <p className="text-[12px] font-medium text-white/55">Mitsubishi L200</p>
+              <p className="mt-1 text-[13px] text-white/45">Desde</p>
+              <p className="text-[22px] font-semibold tracking-[-0.03em] text-white">
+                {clp(cheapestL200.precio)}
               </p>
-              <p className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-white">
-                {clp(hero.precio)}
-              </p>
-              <span className="mt-2 inline-flex rounded-full bg-brand/90 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.04em] text-white">
-                −8% vs mercado
-              </span>
-            </div>
+              {l200Ahorro && (
+                <span className="mt-2 inline-flex rounded-full bg-brand/90 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.04em] text-white">
+                  {l200Ahorro}
+                </span>
+              )}
+            </Link>
           )}
         </section>
 
@@ -113,7 +139,9 @@ export function Home() {
             </h2>
           </div>
           <div className="mt-8 grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
-            {rail.map((car) => (car ? <CarCard key={car.id} car={car} layout="featured" /> : null))}
+            {rail.map((car) => (
+              <CarCard key={car.id} car={car} layout="featured" />
+            ))}
           </div>
           <div className="mt-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {preview.map((car) => (

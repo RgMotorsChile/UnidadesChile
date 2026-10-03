@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Fuel, Gauge, MapPin, Printer, Settings2, User, Waypoints } from "lucide-react";
 import { clp, km } from "../lib/format";
@@ -10,20 +10,40 @@ import { PageTitle } from "../components/PageTitle";
 import { TestDrive } from "../components/TestDrive";
 import { LeadModals } from "../components/LeadModals";
 import { useCompare } from "../components/Compare";
+import { coverSrc } from "../lib/photos";
 import { SafeImg } from "../admin/ui";
 import { useData } from "../store/DataProvider";
 
 export function Auto() {
   const { id } = useParams();
-  const { published, bumpViews, saveLead, settings } = useData();
+  const { published, bumpViews, saveLead, settings, ready } = useData();
   const car = id ? published.find((v) => v.id === id) : undefined;
   const [shot, setShot] = useState(0);
   const [alerta, setAlerta] = useState(false);
   const compare = useCompare();
 
+  const viewed = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (id) void bumpViews(id);
+    if (!id || viewed.current === id) return;
+    viewed.current = id;
+    void bumpViews(id);
   }, [id, bumpViews]);
+
+  if (!car && !ready) {
+    // Mientras llega el catálogo: esqueleto estable (antes parpadeaba "Unidad no encontrada").
+    return (
+      <div className="mx-auto max-w-[1280px] px-4 pb-28 pt-5 sm:px-6 md:px-8" aria-busy="true">
+        <div className="mt-9 grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
+          <div className="aspect-[16/11] w-full animate-pulse rounded-[16px] bg-white/[0.06] sm:rounded-[20px]" />
+          <div className="space-y-4">
+            <div className="h-4 w-32 animate-pulse rounded bg-white/[0.06]" />
+            <div className="h-10 w-3/4 animate-pulse rounded bg-white/[0.06]" />
+            <div className="h-10 w-1/2 animate-pulse rounded bg-white/[0.06]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!car) {
     return (
@@ -70,7 +90,7 @@ export function Auto() {
           <div className="absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-t from-brand/35 to-transparent sm:h-40" />
           <div className="neon-line absolute bottom-[12%] left-[8%] z-10 hidden w-[70%] sm:block" />
           <div className="absolute bottom-3 left-1/2 z-20 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 gap-2 overflow-x-auto px-1 sm:left-4 sm:top-5 sm:bottom-auto sm:max-w-none sm:translate-x-0 sm:flex-col sm:overflow-visible">
-            {car.imagenes.map((src, i) => (
+            {(car.imagenes.length ? car.imagenes : [coverSrc(car.imagenes)]).map((src, i) => (
               <button
                 key={src}
                 type="button"
@@ -84,7 +104,7 @@ export function Auto() {
             ))}
           </div>
           <SafeImg
-            src={car.imagenes[shot]}
+            src={car.imagenes[shot] || coverSrc(car.imagenes)}
             alt={`${car.marca} ${car.modelo}`}
             className="aspect-[16/11] w-full object-cover object-center"
           />
