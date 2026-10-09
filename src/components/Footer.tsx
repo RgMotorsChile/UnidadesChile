@@ -62,6 +62,23 @@ export function Footer() {
           </div>
         </div>
       </div>
+      <div className="border-t border-white/5">
+        <div className="mx-auto flex max-w-[1280px] flex-col items-center gap-1.5 px-4 py-4 text-center text-[11px] text-muted sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-2 sm:px-6 lg:px-8">
+          <span>
+            Desarrollado por <span className="font-medium text-white/80">Mathias Jara</span> &middot; Desarrollador Full Stack
+          </span>
+          <span className="hidden text-white/20 sm:inline">&middot;</span>
+          <span className="flex flex-wrap items-center justify-center gap-x-2">
+            <a href="https://wa.me/56964710361" target="_blank" rel="noreferrer" className="hover:text-white">
+              +56 9 6471 0361
+            </a>
+            <span className="text-white/20">&middot;</span>
+            <a href="mailto:mathias.jara@hotmail.com" className="hover:text-white">
+              mathias.jara@hotmail.com
+            </a>
+          </span>
+        </div>
+      </div>
     </footer>
   );
 }
