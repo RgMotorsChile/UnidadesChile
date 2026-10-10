@@ -1,5 +1,16 @@
 import type { Vehicle, VehicleStatus } from "../store/types";
 import { orderGalleryWithCover } from "./frontCoverMap";
+import { closeAdminSession } from "../store/adminAuth";
+
+const EXPIRED = "Sesión de admin expirada. Vuelve a iniciar sesión.";
+
+/** Cookie del servidor vencida o ausente: cierra el panel y vuelve al login. */
+function handleExpired(res: Response) {
+  if (res.status !== 401) return;
+  closeAdminSession();
+  if (!location.pathname.startsWith("/admin/login")) location.assign("/admin/login");
+  throw new Error(EXPIRED);
+}
 
 export function toUcStatus(raw: string | undefined): VehicleStatus {
   const s = (raw || "").toLowerCase();
@@ -53,6 +64,7 @@ export function rowToAdminVehicle(row: Record<string, unknown>): Vehicle {
 }
 
 async function parse(res: Response) {
+  handleExpired(res);
   const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
   if (!res.ok || data.ok === false) {
     throw new Error(data.error || `Error ${res.status}`);
@@ -76,6 +88,7 @@ export async function adminLogout() {
 
 export async function adminFetchVehicles(): Promise<Vehicle[]> {
   const res = await fetch("/api/admin/vehicles", { credentials: "include" });
+  handleExpired(res);
   const data = (await res.json()) as { ok?: boolean; vehicles?: Record<string, unknown>[]; error?: string };
   if (!res.ok || !data.ok) throw new Error(data.error || "No se pudo leer el inventario.");
   return (data.vehicles || []).map(rowToAdminVehicle);
