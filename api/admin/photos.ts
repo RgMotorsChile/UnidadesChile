@@ -1,5 +1,5 @@
-import { deny, isAdminRequest } from "./_auth.js";
-import { CATALOG_ANON_SELECT, dbReader, supabaseAdmin, tenantId } from "./_db.js";
+import { deny, isAdminRequest, sessionFromRequest } from "./_auth.js";
+import { CATALOG_ANON_SELECT, dbReader, supabaseAdmin, supabaseAnon, tenantId } from "./_db.js";
 import { deleteBlobUrls, isBlobReady, storeMediaFile } from "./_media.js";
 import {
   driveFileId,
@@ -76,6 +76,7 @@ async function saveGallery(
   tenant: string,
   image: string,
   gallery: string[],
+  token = "",
 ) {
   const ordered = orderGalleryWithCover(image, gallery);
   const writer = supabaseAdmin();
@@ -91,6 +92,16 @@ async function saveGallery(
       .eq("slug", slug);
     return error ? error.message : "";
   }
+  const anon = supabaseAnon();
+  if (anon && token) {
+    const { error } = await anon.rpc("uc_admin_set_gallery", {
+      p_token: token,
+      p_slug: slug,
+      p_image: ordered[0] || image,
+      p_gallery: ordered,
+    });
+    if (!error) return "";
+  }
   return saveViaRg(slug, ordered[0] || image, ordered);
 }
 
@@ -104,7 +115,7 @@ export default async function handler(
   res: { status: (code: number) => { json: (body: unknown) => void } },
 ) {
   const method = req.method || "GET";
-  if (method !== "GET" && !isAdminRequest(req)) return deny(res);
+  if (method !== "GET" && !(await isAdminRequest(req))) return deny(res);
 
   try {
     if (method === "GET") {
@@ -168,13 +179,13 @@ export default async function handler(
         const coverUrl = normalizeMediaUrl(String(body.coverUrl || ""));
         if (!coverUrl) return res.status(400).json({ ok: false, error: "Falta coverUrl." });
         const next = orderGalleryWithCover(coverUrl, current);
-        const err = await saveGallery(slug, loaded.tenant, next[0] || coverUrl, next);
+        const err = await saveGallery(slug, loaded.tenant, next[0] || coverUrl, next, sessionFromRequest(req));
         if (err) return res.status(503).json({ ok: false, error: err });
         return res.status(200).json({ ok: true, success: true, coverImage: next[0], gallery: next });
       }
       if (action === "reorder" && Array.isArray(body.gallery)) {
         const next = (body.gallery as unknown[]).map((u) => normalizeMediaUrl(String(u)));
-        const err = await saveGallery(slug, loaded.tenant, next[0] || "", next);
+        const err = await saveGallery(slug, loaded.tenant, next[0] || "", next, sessionFromRequest(req));
         if (err) return res.status(503).json({ ok: false, error: err });
         return res.status(200).json({ ok: true, success: true, gallery: next, coverImage: next[0] || "" });
       }
@@ -191,7 +202,7 @@ export default async function handler(
         return true;
       });
       if (urlHint) await deleteBlobUrls([urlHint]);
-      const err = await saveGallery(slug, loaded.tenant, next[0] || "", next);
+      const err = await saveGallery(slug, loaded.tenant, next[0] || "", next, sessionFromRequest(req));
       if (err) return res.status(503).json({ ok: false, error: err });
       return res.status(200).json({ ok: true, success: true, gallery: next });
     }
@@ -228,7 +239,7 @@ export default async function handler(
         type === "cover"
           ? orderGalleryWithCover(newUrls[0] || "", [...newUrls, ...current])
           : [...current, ...newUrls];
-      const err = await saveGallery(slug, loaded.tenant, next[0] || "", next);
+      const err = await saveGallery(slug, loaded.tenant, next[0] || "", next, sessionFromRequest(req));
       if (err) return res.status(503).json({ ok: false, error: err, urls: newUrls });
       return res.status(200).json({ ok: true, success: true, count: newUrls.length, urls: newUrls });
     }

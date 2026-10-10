@@ -46,7 +46,7 @@ export default async function handler(
   req: { method?: string; body?: Record<string, unknown>; headers?: { cookie?: string }; query?: { slug?: string } },
   res: { status: (code: number) => { json: (body: unknown) => void } },
 ) {
-  if (!isAdminRequest(req)) return deny(res);
+  if (!(await isAdminRequest(req))) return deny(res);
   const method = req.method || "GET";
   const reader = dbReader();
   if (!reader) return res.status(503).json({ ok: false, error: "Supabase no configurado." });
