@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { officialAdmin } from "../lib/adminCredentials";
 import { setMeta } from "../lib/documentMeta";
 import { getAdminRecord } from "../store/repo";
-import { hydrateAdminSession, isAdminSession } from "../store/adminAuth";
+import { hydrateAdminSession, hydrateServerSession, isAdminSession } from "../store/adminAuth";
 import { AdminLayout } from "./AdminLayout";
 import { AdminLogin } from "./Login";
 import { AdminDashboard } from "./Dashboard";
@@ -40,6 +40,11 @@ export function AdminApp() {
     document.title = "Admin | Unidades Chile";
     void (async () => {
       const official = officialAdmin();
+      if (!official) {
+        await hydrateServerSession();
+        setReady(true);
+        return;
+      }
       const rec = await getAdminRecord();
       const hash =
         official?.passwordHash ?? (rec && "passwordHash" in rec ? rec.passwordHash : null);

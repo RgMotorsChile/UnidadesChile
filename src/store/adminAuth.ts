@@ -41,3 +41,20 @@ export function closeAdminSession() {
   sessionStorage.removeItem(SESSION);
   sessionValid = false;
 }
+
+/** Sesión respaldada por la cookie del servidor (cuenta RG de Supabase). */
+export function openServerSession() {
+  sessionValid = true;
+  hydrated = true;
+}
+
+export async function hydrateServerSession() {
+  try {
+    const res = await fetch("/api/admin/login", { credentials: "include" });
+    sessionValid = res.ok;
+  } catch {
+    sessionValid = false;
+  }
+  hydrated = true;
+  return sessionValid;
+}

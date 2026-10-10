@@ -4,12 +4,12 @@ import { officialAdmin } from "../lib/adminCredentials";
 import { Logo } from "../components/Logo";
 import { getAdminRecord, saveAdminUser } from "../store/repo";
 import { adminLogin } from "../lib/adminApi";
-import { hashPassword, isAdminSession, openAdminSession } from "../store/adminAuth";
+import { hashPassword, isAdminSession, openAdminSession, openServerSession } from "../store/adminAuth";
 
 export function AdminLogin() {
   const navigate = useNavigate();
   const official = officialAdmin();
-  const [mode, setMode] = useState<"login" | "setup" | "loading">(official ? "login" : "loading");
+  const [mode, setMode] = useState<"login" | "setup" | "loading">("login");
   const [user, setUser] = useState(official?.user ?? "admin");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -22,10 +22,9 @@ export function AdminLogin() {
       setUser(creds.user);
       return;
     }
-    void getAdminRecord().then((rec) => {
-      setMode(rec ? "login" : "setup");
-      if (rec?.user) setUser(rec.user);
-    });
+    // Sin credencial oficial: el servidor valida la cuenta RG (Supabase Auth).
+    setMode("login");
+    setUser("");
   }, []);
 
   if (isAdminSession()) return <Navigate to="/admin" replace />;
@@ -75,6 +74,16 @@ export function AdminLogin() {
             return;
           }
 
+          try {
+            await adminLogin(user.trim(), password);
+          } catch {
+            setError("Usuario o contraseña incorrectos.");
+            return;
+          }
+          openServerSession();
+          navigate("/admin", { replace: true });
+          return;
+
           const rec = await getAdminRecord();
           if (!rec) {
             setMode("setup");
@@ -102,7 +111,9 @@ export function AdminLogin() {
         <p className="mt-2 text-sm text-white/50">
           {mode === "setup"
             ? "Primera vez en este navegador. Elige un usuario y una clave. No se guarda en el sitio público."
-            : "Dashboard, inventario, CRM, analítica y configuración de Unidades Chile."}
+            : official
+              ? "Dashboard, inventario, CRM, analítica y configuración de Unidades Chile."
+              : "Ingresa con tu usuario de RG Motors (el mismo de Boletas) y su contraseña."}
         </p>
         <label className="mt-6 block text-xs text-white/45">
           Usuario

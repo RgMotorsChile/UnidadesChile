@@ -7,7 +7,7 @@ export default async function handler(
   res: { status: (code: number) => { json: (body: unknown) => void } },
 ) {
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Método no permitido." });
-  if (!isAdminRequest(req)) return deny(res);
+  if (!(await isAdminRequest(req))) return deny(res);
   const secret = (process.env.CRON_SECRET || "").trim();
   if (!secret) {
     return res.status(503).json({

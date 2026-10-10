@@ -6,9 +6,12 @@ export const SUPABASE_URL =
   process.env.VITE_SUPABASE_URL ||
   "https://tuybpizjeszgwtcvunmp.supabase.co";
 
+/** Clave publicable (pública, ya va en el bundle del sitio). */
+const PUBLIC_ANON_KEY = "sb_publishable_kbpCLOfotTxif5ZkGc_B7w_-ntYRxon";
+
 function isUsableKey(value) {
   const key = String(value || "").trim();
-  if (key.length < 40) return false;
+  if (key.length < 30) return false;
   if (/^\*+$/.test(key)) return false;
   return true;
 }
@@ -22,14 +25,19 @@ export function supabaseAdmin() {
   return createClient(SUPABASE_URL, service, { auth: { persistSession: false } });
 }
 
-export function supabaseAnon() {
+export function anonKey() {
   const anon =
     process.env.SUPABASE_ANON_KEY ||
     process.env.VITE_SUPABASE_ANON_KEY ||
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    "";
-  if (!isUsableKey(anon)) return null;
+    PUBLIC_ANON_KEY;
+  return isUsableKey(anon) ? String(anon).trim() : "";
+}
+
+export function supabaseAnon() {
+  const anon = anonKey();
+  if (!anon) return null;
   return createClient(SUPABASE_URL, anon, { auth: { persistSession: false } });
 }
 
