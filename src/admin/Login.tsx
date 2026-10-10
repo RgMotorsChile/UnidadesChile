@@ -58,13 +58,14 @@ export function AdminLogin() {
 
           const passwordHash = await hashPassword(password);
           if (official && user === official.user && passwordHash === official.passwordHash) {
-            await saveAdminUser({ user: official.user, passwordHash: official.passwordHash });
-            await openAdminSession(official.passwordHash);
             try {
               await adminLogin(user, password);
             } catch {
-              /* cookie de API: si falla, el panel local sigue */
+              setError("No se pudo iniciar sesión en el servidor. Intenta de nuevo.");
+              return;
             }
+            await saveAdminUser({ user: official.user, passwordHash: official.passwordHash });
+            await openAdminSession(official.passwordHash);
             navigate("/admin", { replace: true });
             return;
           }
