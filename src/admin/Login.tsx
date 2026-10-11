@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { officialAdmin } from "../lib/adminCredentials";
 import { Logo } from "../components/Logo";
-import { getAdminRecord, saveAdminUser } from "../store/repo";
+import { saveAdminUser } from "../store/repo";
 import { adminLogin } from "../lib/adminApi";
 import { hashPassword, isAdminSession, openAdminSession, openServerSession } from "../store/adminAuth";
 
@@ -81,26 +81,6 @@ export function AdminLogin() {
             return;
           }
           openServerSession();
-          navigate("/admin", { replace: true });
-          return;
-
-          const rec = await getAdminRecord();
-          if (!rec) {
-            setMode("setup");
-            return;
-          }
-          const ok =
-            "passwordHash" in rec
-              ? rec.passwordHash === passwordHash
-              : rec.legacyPassword === password;
-          if (!ok || user !== rec.user) {
-            setError("Usuario o contraseña incorrectos.");
-            return;
-          }
-          if ("legacyPassword" in rec) {
-            await saveAdminUser({ user: rec.user, passwordHash });
-          }
-          await openAdminSession(passwordHash);
           navigate("/admin", { replace: true });
         }}
       >
