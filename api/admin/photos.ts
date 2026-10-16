@@ -1,4 +1,4 @@
-import { deny, isAdminRequest, sessionFromRequest } from "./_auth.js";
+import { deny, expectedSessionToken, isAdminRequest, sessionFromRequest } from "./_auth.js";
 import { CATALOG_ANON_SELECT, dbReader, supabaseAdmin, supabaseAnon, tenantId } from "./_db.js";
 import { deleteBlobUrls, isBlobReady, storeMediaFile } from "./_media.js";
 import {
@@ -102,7 +102,12 @@ async function saveGallery(
     });
     if (!error) return "";
   }
-  return saveViaRg(slug, ordered[0] || image, ordered);
+  const legacy = Boolean(token) && token === expectedSessionToken();
+  const viaRg = await saveViaRg(slug, ordered[0] || image, ordered);
+  if (viaRg && legacy) {
+    return "Tu sesión es la antigua (usuario de entorno) y no puede guardar fotos. Cierra sesión y entra con tu cuenta RG (ej. mathias.jara).";
+  }
+  return viaRg;
 }
 
 export default async function handler(
