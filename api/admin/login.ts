@@ -48,13 +48,17 @@ export default async function handler(
     }
     const user = String(req.body?.user || "").trim();
     const password = String(req.body?.password || "");
-    const hash = officialPasswordHash();
-    if (hash && user === officialUser() && sha256Hex(`uc-pw:${password}`) === hash) {
-      res.setHeader("Set-Cookie", sessionCookie(expectedSessionToken()));
-      return res.status(200).json({ ok: true, user });
-    }
+    // Primero la cuenta RG (Supabase Auth): crea fila en uc_admin_sessions y
+    // permite guardar fotos vía RPC sin service role.
     const token = await supabaseSession(user, password);
-    if (!token) return deny(res);
+    if (!token) {
+      const hash = officialPasswordHash();
+      if (hash && user === officialUser() && sha256Hex(`uc-pw:${password}`) === hash) {
+        res.setHeader("Set-Cookie", sessionCookie(expectedSessionToken()));
+        return res.status(200).json({ ok: true, user, legacy: true });
+      }
+      return deny(res);
+    }
     res.setHeader("Set-Cookie", sessionCookie(token));
     return res.status(200).json({ ok: true, user });
   } catch (err) {
