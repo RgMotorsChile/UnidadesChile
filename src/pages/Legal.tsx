@@ -114,7 +114,7 @@ export function Terminos() {
       <section className="space-y-2">
         <H>3. Catálogo</H>
         <p>
-          Precios, kilometraje, fotos y disponibilidad son referenciales y pueden cambiar.
+          Precios, fotos y disponibilidad son referenciales y pueden cambiar.
           El catálogo publicado es exclusivo de Unidades Chile Automotriz. La
           disponibilidad se confirma solo con el equipo comercial.
         </p>

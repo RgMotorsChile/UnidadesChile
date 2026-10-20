@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { PageTitle } from "../components/PageTitle";
 import { useCompare } from "../components/Compare";
 import { SafeImg } from "../admin/ui";
-import { clp, km } from "../lib/format";
+import { clp } from "../lib/format";
 import { cuotaDesde } from "../lib/autofin";
 import { usePublishedCars } from "../store/DataProvider";
 
@@ -31,7 +31,6 @@ export function Comparador() {
     { label: "Precio", get: (i: number) => clp(selected[i].precio) },
     { label: "Precio mercado", get: (i: number) => clp(selected[i].mercado) },
     { label: "Año", get: (i: number) => String(selected[i].year) },
-    { label: "Kilometraje", get: (i: number) => km(selected[i].km) },
     { label: "Transmisión", get: (i: number) => selected[i].transmision },
     { label: "Combustible", get: (i: number) => selected[i].combustible },
     { label: "Tracción", get: (i: number) => selected[i].traccion },

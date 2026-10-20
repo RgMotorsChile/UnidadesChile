@@ -8,7 +8,7 @@ import { CarFront, Cog, Gauge, Layers } from "lucide-react";
 import { Emblem } from "../components/Logo";
 import { useData } from "../store/DataProvider";
 
-type Sort = "ahorro" | "precio-asc" | "precio-desc" | "km";
+type Sort = "ahorro" | "precio-asc" | "precio-desc";
 
 export function Inventario() {
   const { published: cars, ready } = useData();
@@ -42,7 +42,6 @@ export function Inventario() {
     return [...filtered].sort((a, b) => {
       if (sort === "precio-asc") return a.precio - b.precio;
       if (sort === "precio-desc") return b.precio - a.precio;
-      if (sort === "km") return a.km - b.km;
       return b.mercado - b.precio - (a.mercado - a.precio);
     });
   }, [cars, marca, modelo, year, carroceria, combustible, transmision, traccion, sort]);
@@ -106,7 +105,6 @@ export function Inventario() {
             <option value="ahorro">Mejor precio vs mercado</option>
             <option value="precio-asc">Menor precio</option>
             <option value="precio-desc">Mayor precio</option>
-            <option value="km">Menor kilometraje</option>
           </select>
         </Field>
         {carroceria && (

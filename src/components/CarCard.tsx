@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import type { Car } from "../data/cars";
-import { clp, km, savingsLabel } from "../lib/format";
+import { clp, savingsLabel } from "../lib/format";
 import { useFavorites } from "./Favorites";
 import { useCompare } from "./Compare";
 import { coverSrc } from "../lib/photos";
@@ -55,7 +55,6 @@ export function CarCard({ car, layout = "grid" }: Props) {
             <p className="mt-2 whitespace-nowrap text-[17px] font-semibold tracking-tight text-white sm:mt-3 sm:text-[19px]">
               {clp(car.precio)}
             </p>
-            <p className="mt-1 text-[12px] text-white/45">{km(car.km)}</p>
           </div>
           <PhotoWell src={coverSrc(car.imagenes)} alt={alt} className="aspect-[4/3] sm:aspect-auto sm:min-h-[188px]" />
         </Link>
@@ -97,7 +96,7 @@ export function CarCard({ car, layout = "grid" }: Props) {
           {car.marca} {car.modelo}
         </h3>
         <p className="mt-1 text-[12px] text-white/45 sm:text-[13px]">
-          {car.year} · {km(car.km)}
+          {car.year}
         </p>
         <p className="mt-auto pt-2 text-[20px] font-semibold tracking-tight sm:pt-3 sm:text-[24px]">
           {clp(car.precio)}

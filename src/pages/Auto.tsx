@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Fuel, Gauge, MapPin, Printer, Settings2, User, Waypoints } from "lucide-react";
-import { clp, km } from "../lib/format";
+import { Fuel, MapPin, Printer, Settings2, User, Waypoints } from "lucide-react";
+import { clp } from "../lib/format";
 import { cuotaDesde } from "../lib/autofin";
 import { waLink } from "../lib/config";
 import { newLead } from "../lib/leads";
@@ -58,7 +58,6 @@ export function Auto() {
 
   const ahorro = car.mercado - car.precio;
   const specs = [
-    { icon: Gauge, label: km(car.km) },
     { icon: Settings2, label: car.transmision },
     { icon: Fuel, label: car.combustible },
     { icon: Waypoints, label: car.traccion },
