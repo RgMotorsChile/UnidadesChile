@@ -1,6 +1,12 @@
 import { deny, expectedSessionToken, isAdminRequest, sessionFromRequest } from "./_auth.js";
 import { CATALOG_ANON_SELECT, dbReader, supabaseAdmin, supabaseAnon, tenantId } from "./_db.js";
-import { deleteBlobUrls, isBlobReady, storeMediaFile } from "./_media.js";
+import {
+  deleteStoredPhotos,
+  dropReason,
+  droppedStoragePaths,
+  isStorageReady,
+  storeMediaFile,
+} from "./_media.js";
 import {
   driveFileId,
   mediaUrlsEqual,
@@ -110,6 +116,12 @@ async function saveGallery(
   return viaRg;
 }
 
+async function deleteDroppedPhotos(slug: string, before: string[], after: string[]) {
+  const paths = droppedStoragePaths(before, after, slug);
+  if (!paths.length) return;
+  await deleteStoredPhotos({ paths, slug, reason: dropReason(before, after, slug) });
+}
+
 export default async function handler(
   req: {
     method?: string;
@@ -165,7 +177,7 @@ export default async function handler(
         slug,
         gallery,
         coverImage: gallery[0]?.url || cover,
-        storage: isBlobReady() ? "blob" : "none",
+        storage: isStorageReady() ? "supabase" : "none",
       });
     }
 
@@ -186,12 +198,14 @@ export default async function handler(
         const next = orderGalleryWithCover(coverUrl, current);
         const err = await saveGallery(slug, loaded.tenant, next[0] || coverUrl, next, sessionFromRequest(req));
         if (err) return res.status(503).json({ ok: false, error: err });
+        await deleteDroppedPhotos(slug, current, next);
         return res.status(200).json({ ok: true, success: true, coverImage: next[0], gallery: next });
       }
       if (action === "reorder" && Array.isArray(body.gallery)) {
         const next = (body.gallery as unknown[]).map((u) => normalizeMediaUrl(String(u)));
         const err = await saveGallery(slug, loaded.tenant, next[0] || "", next, sessionFromRequest(req));
         if (err) return res.status(503).json({ ok: false, error: err });
+        await deleteDroppedPhotos(slug, current, next);
         return res.status(200).json({ ok: true, success: true, gallery: next, coverImage: next[0] || "" });
       }
       return res.status(400).json({ ok: false, error: "Acción no reconocida." });
@@ -206,17 +220,17 @@ export default async function handler(
         if (filename && u.includes(filename)) return false;
         return true;
       });
-      if (urlHint) await deleteBlobUrls([urlHint]);
       const err = await saveGallery(slug, loaded.tenant, next[0] || "", next, sessionFromRequest(req));
       if (err) return res.status(503).json({ ok: false, error: err });
+      await deleteDroppedPhotos(slug, current, next);
       return res.status(200).json({ ok: true, success: true, gallery: next });
     }
 
     if (method === "POST") {
-      if (!isBlobReady()) {
+      if (!isStorageReady()) {
         return res.status(503).json({
           ok: false,
-          error: "Falta BLOB_READ_WRITE_TOKEN para subir fotos nuevas. Puedes elegir portada sobre las ya publicadas.",
+          error: "Falta SUPABASE_SERVICE_ROLE_KEY para subir fotos nuevas. Puedes elegir portada sobre las ya publicadas.",
         });
       }
       const files = Array.isArray(body.files) ? (body.files as { name?: string; type?: string; data?: string }[]) : [];
@@ -228,13 +242,9 @@ export default async function handler(
         const name = String(file.name || "photo.jpg");
         const { bytes, mime } = decodeDataUrl(String(file.data || ""));
         if (!bytes.length) continue;
-        const base =
-          name.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9_-]/g, "_").slice(0, 30) || "photo";
-        const ext = /\.png$/i.test(name) ? "png" : /\.webp$/i.test(name) ? "webp" : "jpg";
-        const prefix = type === "cover" && newUrls.length === 0 ? "cover_" : "";
         const stored = await storeMediaFile({
           bytes,
-          relativePath: `cars/uploads/${slug}/${prefix}${Date.now()}_${base}.${ext}`,
+          slug,
           contentType: guessMime(name, file.type || mime),
         });
         newUrls.push(stored.url);
