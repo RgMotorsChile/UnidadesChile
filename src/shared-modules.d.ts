@@ -27,7 +27,10 @@ declare module "@shared/vehiclePublic.mjs" {
     modelo?: string;
     year?: number;
   }): string;
-  export function isListedHere(car: { unidad?: string; sucursal?: string }): boolean;
+  export function isListedHere(
+    car: { unidad?: string; plate?: string; sucursal?: string },
+    sheetPlates?: Set<string> | null,
+  ): boolean;
   export function publicOrigin(host: string, fallbackOrigin?: string): string;
   export function pageSeo(origin: string, pathname: string, car?: object): {
     title: string;

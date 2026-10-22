@@ -1,4 +1,5 @@
 import { deny, isAdminRequest } from "./_auth.js";
+import { purgeCarsMissingFromSheet } from "./sheetRemoval.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -8,11 +9,18 @@ export default async function handler(
 ) {
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Método no permitido." });
   if (!(await isAdminRequest(req))) return deny(res);
+
+  // Antes del cron de RG: esa sync saca la fila de UC y no borra Storage.
+  const removed = await purgeCarsMissingFromSheet();
+
   const secret = (process.env.CRON_SECRET || "").trim();
   if (!secret) {
     return res.status(503).json({
       ok: false,
-      error: "Falta CRON_SECRET para disparar el sync de planilla y Drive.",
+      error: removed.ok
+        ? "Falta CRON_SECRET para disparar el sync de planilla y Drive."
+        : removed.reason || "Falta CRON_SECRET para disparar el sync de planilla y Drive.",
+      removed,
     });
   }
   const url =
@@ -29,11 +37,18 @@ export default async function handler(
     } catch {
       /* keep text */
     }
-    return res.status(remote.ok ? 200 : 502).json({ ok: remote.ok, sync: data });
+    const ok = remote.ok && removed.ok;
+    return res.status(ok ? 200 : 502).json({
+      ok,
+      error: removed.ok ? undefined : removed.reason,
+      sync: data,
+      removed,
+    });
   } catch (err) {
     return res.status(502).json({
       ok: false,
       error: err instanceof Error ? err.message : "No se pudo sincronizar.",
+      removed,
     });
   }
 }

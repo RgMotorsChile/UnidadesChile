@@ -1,5 +1,6 @@
 import { fetchRemoteCatalog } from "./shared/catalog.mjs";
 import { decide, goneDocument, renderHtml } from "./shared/dispatch.mjs";
+import { loadSheetPlates } from "./shared/sheetPlates.mjs";
 
 export const config = {
   matcher: ["/((?!api/|assets/|images/|cars/|logos/|favicon|.*\\..*).*)"],
@@ -34,8 +35,11 @@ async function catalogFor(request) {
 
 export default async function middleware(request) {
   const url = new URL(request.url);
-  const catalog = await catalogFor(request);
-  const decision = decide(url, catalog);
+  const [catalog, sheetPlates] = await Promise.all([
+    catalogFor(request),
+    loadSheetPlates().catch(() => null),
+  ]);
+  const decision = decide(url, catalog, sheetPlates);
 
   if (decision.type === "redirect") {
     return new Response(null, {

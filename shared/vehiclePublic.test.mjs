@@ -4,8 +4,8 @@ import test from "node:test";
 import { decide } from "./dispatch.mjs";
 import { catalogFromLocal } from "./catalog.mjs";
 import {
-  OTHER_BRANCH,
   carJson,
+  isListedHere,
   pageSeo,
   plateKey,
   publicSlug,
@@ -48,62 +48,60 @@ test("la URL vieja redirige 301 y el vendido sale del sitemap", () => {
   const xml = sitemapXml(origin, catalog);
   assert.match(xml, new RegExp(`/catalogo/${sample.publicSlug}`));
   assert.equal(xml.includes(sample.id), false);
-  assert.equal(xml.includes("shyl53"), false);
-  assert.equal(xml.includes("rygb56"), false);
-  assert.equal(xml.includes("stpz87"), false);
   assert.match(xml, /<lastmod>/);
 });
 
-test("301 cruzado solo si la patente está en una sola planilla ajena", () => {
-  const shyl = resolveVehicle(OTHER_BRANCH.SHYL53.legacySlug, catalog);
-  assert.equal(shyl.status, 301);
-  assert.equal(shyl.to, "https://www.rgmotorschile.cl/vehiculo/ford-ranger-4x4-rojo-2023-7cm3a8");
-  assert.equal(shyl.to.includes("shyl53"), false);
-  const stpz = resolveVehicle(OTHER_BRANCH.STPZ87.legacySlug, catalog);
-  assert.equal(stpz.status, 301);
-  assert.equal(stpz.to, "https://www.rgmotorschile.cl/vehiculo/maxus-t60-4x2-at-gris-2023-n57nph");
-  const lfst = resolveVehicle(OTHER_BRANCH.LFST41.legacySlug, catalog);
-  assert.equal(lfst.status, 301);
-  assert.equal(lfst.to, "https://www.rgmotorschile.cl/vehiculo/mitsubishi-l200-katana-cr-4x2-rojo-2019-36h57g");
-  assert.equal(OTHER_BRANCH.RYGB56, undefined);
-  const rygb = resolveVehicle("mg-3-hatch-back-2022-rygb56", catalog);
-  assert.equal(rygb.type, "missing");
-  const shared = {
-    id: "hyundai-tucson-gl-2-0-2014-ghtd24",
-    unidad: "GHTD 24",
-    marca: "Hyundai",
-    modelo: "Tucson",
-    version: "Tucson",
-    year: 2014,
+test("fuera de la planilla de este sitio responde 410 aquí y no redirige a otro dominio", () => {
+  const shyl = {
+    id: "ford-ranger-4x4-2023-shyl53",
+    unidad: "SHYL53",
+    marca: "Ford",
+    modelo: "Ranger",
+    version: "4x4",
+    year: 2023,
     precio: 1,
     km: 1,
     imagenes: [],
     status: "publicado",
     sucursal: "rg-motors",
-    publicSlug: "hyundai-tucson-gl-2-0-blanco-2014-u7skaq",
-    external: "https://www.rgmotorschile.cl/vehiculo/hyundai-tucson-gl-2-0-2014-ghtd24",
+    publicSlug: "ford-ranger-4x4-rojo-2023-7cm3a8",
+    external: "https://www.rgmotorschile.cl/vehiculo/ford-ranger-4x4-rojo-2023-7cm3a8",
   };
-  assert.equal(resolveVehicle(shared.id, [shared]).type, "missing");
-  assert.equal(resolveVehicle(shared.publicSlug, [shared]).type, "missing");
-  const kept = {
-    ...shared,
-    id: "mitsubishi-l200-katana-crt-4x4-2019-lpcg80",
-    unidad: "LPCG 80",
-    sucursal: "unidades-chile",
-    publicSlug: "mitsubishi-l200-katana-crt-4x4-2019-pq8ymm",
-    external: null,
-  };
-  assert.equal(resolveVehicle(kept.publicSlug, [kept]).type, "ok");
-  for (const plate of ["GHTD24", "HLXB59", "RZKV76", "RYGB56", "JRTH26", "LWRS59"]) {
-    assert.equal(OTHER_BRANCH[plate], undefined);
-  }
-  const xml = sitemapXml(origin, catalog);
+  const stpz = catalog.find((car) => plateKey(car.unidad) === "STPZ87");
+  const kept = catalog.find((car) => car.sucursal === "unidades-chile" && plateKey(car.unidad) !== "STPZ87");
+  const plates = new Set([plateKey(kept.unidad), "LPCG80"]);
+  const gone = resolveVehicle(shyl.id, [shyl, kept], plates);
+  assert.equal(gone.type, "gone");
+  assert.equal(gone.to, undefined);
+  assert.equal(resolveVehicle(shyl.publicSlug, [shyl], plates).type, "gone");
+  assert.equal(resolveVehicle(stpz.id, catalog, plates).type, "gone");
+  assert.equal(resolveVehicle("mg-3-hatch-back-2022-rygb56", catalog, plates).type, "gone");
+  assert.equal(resolveVehicle("no-existe", catalog, plates).type, "gone");
+  const onSheet = resolveVehicle(shyl.id, [shyl], new Set(["SHYL53"]));
+  assert.equal(onSheet.type, "redirect");
+  assert.equal(onSheet.status, 301);
+  assert.equal(onSheet.to, `/catalogo/${shyl.publicSlug}`);
+  assert.equal(onSheet.to.startsWith("http"), false);
+  const soldOffSheet = resolveVehicle(kept.publicSlug, [{ ...kept, status: "vendido" }], plates);
+  assert.equal(soldOffSheet.to, "/catalogo?estado=vendido");
+  const soldGone = resolveVehicle(stpz.publicSlug, [{ ...stpz, status: "vendido" }], plates);
+  assert.equal(soldGone.type, "gone");
+  const xml = sitemapXml(origin, [...catalog, shyl], plates);
+  assert.match(xml, new RegExp(`/catalogo/${kept.publicSlug}`));
+  assert.equal(xml.includes("shyl53"), false);
   assert.equal(xml.includes("rygb56"), false);
-  const decision = decide(new URL(`${origin}/catalogo`), catalog);
-  assert.equal(decision.seo.canonical, `${origin}/catalogo`);
+  assert.equal(xml.includes("stpz87"), false);
+  assert.equal(xml.includes("rgmotorschile"), false);
+  assert.equal(xml.includes("salgadoautomotriz"), false);
+  assert.equal(isListedHere(shyl, plates), false);
+  assert.equal(isListedHere(shyl, new Set(["SHYL53"])), true);
+  const decision = decide(new URL(`${origin}/catalogo/${shyl.id}`), [shyl], plates);
+  assert.equal(decision.type, "gone");
+  const page = decide(new URL(`${origin}/catalogo`), catalog);
+  assert.equal(page.seo.canonical, `${origin}/catalogo`);
   const home = decide(new URL(`${origin}/`), catalog);
   assert.equal(home.seo.canonical, `${origin}/`);
-  assert.notEqual(decision.seo.canonical, home.seo.canonical);
+  assert.notEqual(page.seo.canonical, home.seo.canonical);
 });
 
 test("schema Car y textos sin patente", () => {

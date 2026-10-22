@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { handleImage, handleOg } from "./server/images.mjs";
-import { decide, getCatalog, goneDocument, renderHtml } from "./server/seoGate.mjs";
+import { decide, getCatalog, getSheetPlates, goneDocument, renderHtml } from "./server/seoGate.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -20,30 +20,35 @@ function requestUrl(req) {
   return new URL(req.url || "/", `http://${host}`);
 }
 
+async function publication() {
+  const [catalog, sheetPlates] = await Promise.all([getCatalog(), getSheetPlates()]);
+  return { catalog, sheetPlates };
+}
+
 async function handle(req, res, next) {
   if (req.method !== "GET" && req.method !== "HEAD") return next();
   const url = requestUrl(req);
   if (url.pathname === "/api/img") return handleImage(req, res);
   if (url.pathname === "/api/catalog-index") {
-    const rows = await getCatalog();
+    const { catalog } = await publication();
     res.setHeader("content-type", "application/json; charset=utf-8");
-    res.end(JSON.stringify(rows));
+    res.end(JSON.stringify(catalog));
     return;
   }
   if (url.pathname === "/api/og-image") {
-    const catalog = await getCatalog();
+    const { catalog } = await publication();
     return handleOg(req, res, catalog);
   }
-  const catalog = await getCatalog();
+  const { catalog, sheetPlates } = await publication();
   if (url.pathname === "/sitemap.xml" || url.pathname === "/api/sitemap") {
-    const decision = decide(new URL("/sitemap.xml", url.origin), catalog);
+    const decision = decide(new URL("/sitemap.xml", url.origin), catalog, sheetPlates);
     res.setHeader("content-type", "application/xml; charset=utf-8");
     res.end(decision.body);
     return;
   }
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   if (pathname.includes(".") && pathname !== "/sitemap.xml") return next();
-  const decision = decide(url, catalog);
+  const decision = decide(url, catalog, sheetPlates);
   if (decision.type === "redirect") {
     res.statusCode = decision.status;
     res.setHeader("Location", decision.to);
@@ -83,8 +88,9 @@ export function seoPreviewPlugin() {
           return;
         }
         getCatalog()
-          .then((catalog) => {
-            const decision = decide(url, catalog);
+          .then(async (catalog) => {
+            const sheetPlates = await getSheetPlates();
+            const decision = decide(url, catalog, sheetPlates);
             if (decision.type === "html") return next();
             return handle(req, res, next);
           })

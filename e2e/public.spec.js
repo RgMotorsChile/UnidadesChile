@@ -106,28 +106,30 @@ test("el botón Consigna del inicio tapa la foto", async ({ page }) => {
   }
 });
 
-test("301 cruzado y ficha compartida sin 410", async ({ request }) => {
+test("un auto que ya no está en esta planilla no redirige a otro sitio", async ({ request }) => {
   const moved = await request.get("/catalogo/ford-ranger-4x4-2023-shyl53", { maxRedirects: 0 });
-  expect(moved.status()).toBe(301);
-  expect(moved.headers().location).toBe(
-    "https://www.rgmotorschile.cl/vehiculo/ford-ranger-4x4-rojo-2023-7cm3a8",
-  );
+  expect([200, 301, 410]).toContain(moved.status());
+  const location = moved.headers().location || "";
+  expect(location).not.toMatch(/rgmotorschile\.cl|salgadoautomotriz\.cl/);
+  if (moved.status() === 301) {
+    const target = new URL(location, "http://127.0.0.1:4173");
+    expect(target.hostname).toMatch(/^(127\.0\.0\.1|localhost|unidadeschile\.cl|www\.unidadeschile\.cl)$/);
+    expect(target.pathname).toMatch(/^\/catalogo\//);
+  }
   const maxus = await request.get("/catalogo/maxus-t60-4x2-at-2023-stpz87", { maxRedirects: 0 });
-  expect(maxus.status()).toBe(301);
-  expect(maxus.headers().location).toBe(
-    "https://www.rgmotorschile.cl/vehiculo/maxus-t60-4x2-at-gris-2023-n57nph",
-  );
+  expect([200, 301, 410]).toContain(maxus.status());
+  expect(maxus.headers().location || "").not.toMatch(/rgmotorschile\.cl|salgadoautomotriz\.cl/);
   const shared = await request.get("/catalogo/mg-3-hatch-back-2022-rygb56", { maxRedirects: 0 });
-  expect(shared.status()).toBe(200);
-  expect(await shared.text()).toContain("Unidad no encontrada");
+  expect([200, 301, 410]).toContain(shared.status());
+  expect(shared.headers().location || "").not.toMatch(/rgmotorschile\.cl|salgadoautomotriz\.cl/);
   const xml = await request.get("/sitemap.xml");
   expect(xml.ok()).toBeTruthy();
   const text = await xml.text();
-  expect(text).not.toContain("shyl53");
-  expect(text).not.toContain("rygb56");
+  expect(text).not.toMatch(/rgmotorschile\.cl|salgadoautomotriz\.cl/);
   expect(text).toContain("<lastmod>");
   const locs = [...text.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
   expect(locs.length).toBeGreaterThan(10);
   expect(new Set(locs).size).toBe(locs.length);
   expect(locs.filter((loc) => loc.endsWith("/catalogo")).length).toBe(1);
+  expect(locs.every((loc) => loc.startsWith("https://www.unidadeschile.cl") || loc.startsWith("http://127.0.0.1"))).toBeTruthy();
 });

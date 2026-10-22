@@ -10,6 +10,9 @@ import {
   deleteStoredPhotos,
   dropReason,
   droppedStoragePaths,
+  expandSpinPatterns,
+  isProtectedStoragePath,
+  listSlugObjectPaths,
   objectPathFromPublicUrl,
   publicObjectUrl,
   safeSlug,
@@ -90,8 +93,11 @@ function fakeAdmin(state) {
       from(bucket) {
         state.buckets.push(bucket);
         return {
-          async list() {
+          async list(prefix) {
             if (state.listError) return { data: null, error: { message: state.listError } };
+            if (state.listByPrefix) return { data: state.listByPrefix[prefix] || [], error: null };
+            const root = `unidades-chile/${SLUG}`;
+            if (prefix !== root) return { data: [], error: null };
             return { data: state.listed || [], error: null };
           },
           async remove(paths) {
@@ -199,6 +205,65 @@ describe("borrado inmediato", () => {
     assert.equal(broken.orphans[0].object_path, `unidades-chile/${SLUG}/`);
     assert.equal(broken.orphans[0].public_url, "");
     assert.equal(broken.orphans[0].reason, "sold");
+  });
+
+  it("lista el tour 360 anidado y deja fuera pagos y boletas", async () => {
+    const root = `unidades-chile/${SLUG}`;
+    const frame = `${root}/spin/v1/m900/001.webp`;
+    const photo = `${root}/foto.jpg`;
+    const state = {
+      buckets: [],
+      tables: [],
+      removed: [],
+      orphans: [],
+      listByPrefix: {
+        [root]: [
+          { name: "foto.jpg", id: "file" },
+          { name: "spin", id: null },
+          { name: "pagos", id: null },
+          { name: "boletas", id: null },
+        ],
+        [`${root}/spin`]: [{ name: "v1", id: null }],
+        [`${root}/spin/v1`]: [{ name: "m900", id: null }],
+        [`${root}/spin/v1/m900`]: [{ name: "001.webp", id: "frame" }],
+        [`${root}/pagos`]: [{ name: "cuota.pdf", id: "pay" }],
+        [`${root}/boletas`]: [{ name: "boleta.pdf", id: "bill" }],
+      },
+    };
+    const listed = await listSlugObjectPaths(fakeAdmin(state), SLUG);
+    assert.deepEqual(listed.sort(), [frame, photo].sort());
+    const pattern = `https://tuybpizjeszgwtcvunmp.supabase.co/storage/v1/object/public/vehicle-photos/${root}/spin/v1/m900/{i}.webp`;
+    const frames = expandSpinPatterns({ count: 2, pattern, hiPattern: pattern.replace("m900", "d1600") });
+    assert.equal(frames.length, 4);
+    assert.equal(expandSpinPatterns({ count: 400, pattern }).length, 360);
+    assert.equal(
+      expandSpinPatterns({
+        count: 1,
+        pattern: "https://tuybpizjeszgwtcvunmp.supabase.co/storage/v1/object/public/boletas-receipts/a/{i}.pdf",
+      }).length,
+      1,
+    );
+    assert.equal(isProtectedStoragePath(`${root}/pagos/cuota.pdf`), true);
+    const result = await deleteStoredPhotos(
+      {
+        paths: [
+          photo,
+          `${root}/pagos/cuota.pdf`,
+          "boletas-receipts/2024/a.pdf",
+          "rg-motors/otro/foto.jpg",
+        ],
+        slug: SLUG,
+        reason: "removed",
+        listSlug: true,
+      },
+      { admin: fakeAdmin(state) },
+    );
+    assert.equal(result.deleted, 2);
+    const flat = state.removed.flat();
+    assert.ok(flat.includes(photo));
+    assert.ok(flat.includes(frame));
+    assert.equal(flat.some((path) => /pagos|boleta|rg-motors/.test(path)), false);
+    assert.deepEqual([...new Set(state.buckets)], [VEHICLE_PHOTOS_BUCKET]);
   });
 });
 

@@ -139,6 +139,46 @@ export function dropReason(beforeUrls, afterUrls, slug) {
   return "removed";
 }
 
+/** Carpetas de boletas, pagos u otros módulos. No se listan ni se borran. */
+export function isProtectedStoragePath(path) {
+  const parts = String(path || "")
+    .split("/")
+    .filter(Boolean);
+  return parts.some((part) => /^(boletas?|boletas-receipts|payments?|pagos|receipts?)$/i.test(part));
+}
+
+/**
+ * Frames del tour 360. `count` es el tope de fotos del giro, no un bucket.
+ * El patrón vive en vehicle-photos: unidades-chile/<slug>/spin/<version>/<set>/{i}.webp
+ */
+export function expandSpinPatterns(spin) {
+  let value = spin;
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return [];
+    }
+  }
+  if (!value || typeof value !== "object") return [];
+  const count = Math.min(Math.max(Number(value.count) || 0, 0), 360);
+  const urls = [];
+  for (const pattern of [value.pattern, value.hiPattern]) {
+    if (!pattern) continue;
+    const raw = String(pattern);
+    if (!raw.includes("{i}") && !raw.includes("{index}")) {
+      urls.push(raw);
+      continue;
+    }
+    if (!count) continue;
+    for (let i = 1; i <= count; i += 1) {
+      const frame = String(i).padStart(3, "0");
+      urls.push(raw.replaceAll("{index}", frame).replaceAll("{i}", frame));
+    }
+  }
+  return urls;
+}
+
 function isAlreadyGone(error) {
   const message = String(error?.message || error || "");
   const status = String(error?.statusCode || error?.status || "");
@@ -146,24 +186,36 @@ function isAlreadyGone(error) {
 }
 
 export async function listSlugObjectPaths(admin, slug) {
-  const prefix = vehiclePrefix(slug).replace(/\/$/, "");
-  if (!prefix || !admin) return [];
+  const root = vehiclePrefix(slug).replace(/\/$/, "");
+  if (!root || !admin) return [];
   const paths = [];
-  const page = 1000;
-  for (let offset = 0; offset < 20000; offset += page) {
-    const { data, error } = await admin.storage.from(VEHICLE_PHOTOS_BUCKET).list(prefix, {
-      limit: page,
-      offset,
-    });
-    if (error) throw new Error(error.message || "No se pudo listar las fotos.");
-    const rows = data || [];
-    for (const item of rows) {
-      if (!item?.name || !item.id) continue;
-      if (item.name === ".emptyFolderPlaceholder") continue;
-      paths.push(`${prefix}/${item.name}`);
+  const seen = new Set();
+  async function walk(prefix) {
+    if (!prefix.startsWith(root) || seen.has(prefix) || seen.size > 80) return;
+    seen.add(prefix);
+    const page = 1000;
+    for (let offset = 0; offset < 20000; offset += page) {
+      const { data, error } = await admin.storage.from(VEHICLE_PHOTOS_BUCKET).list(prefix, {
+        limit: page,
+        offset,
+      });
+      if (error) throw new Error(error.message || "No se pudo listar las fotos.");
+      const rows = data || [];
+      for (const item of rows) {
+        if (!item?.name || item.name === ".emptyFolderPlaceholder") continue;
+        if (item.name.includes("..") || item.name.includes("/")) continue;
+        const path = `${prefix}/${item.name}`;
+        if (isProtectedStoragePath(path)) continue;
+        if (!item.id) {
+          await walk(path);
+          continue;
+        }
+        paths.push(path);
+      }
+      if (rows.length < page) break;
     }
-    if (rows.length < page) break;
   }
+  await walk(root);
   return paths;
 }
 
@@ -214,7 +266,8 @@ async function recordOrphans(admin, failures, slug, reason) {
 /**
  * Borra objetos de Storage después de confirmar el cambio en la base.
  * No lanza: si el borrado falla, deja la fila en vehicle_photo_orphans.
- * `listSlug` solo al vender o borrar el auto (vacía unidades-chile/<slug>/).
+ * `listSlug` vacía unidades-chile/<slug>/, incluidas las carpetas spin/ del tour 360.
+ * No lista ni borra boletas ni pagos.
  */
 export async function deleteStoredPhotos(
   { paths = [], slug = "", reason = "removed", listSlug = false } = {},
@@ -226,7 +279,8 @@ export async function deleteStoredPhotos(
     const wanted = new Set();
     for (const path of paths) {
       const normalized = String(path || "").replace(/^\/+/, "");
-      if (prefix && normalized.startsWith(prefix)) wanted.add(normalized);
+      if (!prefix || !normalized.startsWith(prefix) || isProtectedStoragePath(normalized)) continue;
+      wanted.add(normalized);
     }
     const failures = [];
     if (listSlug && prefix) {

@@ -1,5 +1,6 @@
 import { getCatalog } from "../server/seoGate.mjs";
 import { sitemapXml, SITE_URL } from "../shared/vehiclePublic.mjs";
+import { loadSheetPlates } from "../shared/sheetPlates.mjs";
 
 export const config = { runtime: "nodejs" };
 
@@ -10,7 +11,8 @@ export default async function handler(req, res) {
       ? `https://${host.split(":")[0]}`
       : SITE_URL;
   const rows = await getCatalog();
+  const sheetPlates = await loadSheetPlates().catch(() => null);
   res.setHeader("content-type", "application/xml; charset=utf-8");
   res.setHeader("cache-control", "public, max-age=300, must-revalidate");
-  res.status(200).send(sitemapXml(origin, rows));
+  res.status(200).send(sitemapXml(origin, rows, sheetPlates));
 }

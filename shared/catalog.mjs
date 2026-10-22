@@ -1,10 +1,4 @@
-import {
-  branchOfTenant,
-  mapStatus,
-  normalizeRecord,
-  OTHER_BRANCH,
-  plateKey,
-} from "./vehiclePublic.mjs";
+import { branchOfTenant, mapStatus, normalizeRecord } from "./vehiclePublic.mjs";
 
 const CACHE_MS = 60_000;
 let cache = null;
@@ -56,11 +50,7 @@ export async function fetchRemoteCatalog(env = process.env) {
 }
 
 export function catalogFromLocal(cars) {
-  return (cars || []).map((car) => {
-    const plate = plateKey(car.unidad);
-    const forced = OTHER_BRANCH[plate];
-    return normalizeRecord(car, forced?.branch || "unidades-chile");
-  });
+  return (cars || []).map((car) => normalizeRecord(car, car.sucursal || "unidades-chile"));
 }
 
 export async function loadCatalog({ localCars, env = process.env, force = false } = {}) {

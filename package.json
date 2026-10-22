@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test api/admin/_media.test.js shared/vehiclePublic.test.mjs",
+    "test": "node --experimental-strip-types --test api/admin/_media.test.js api/admin/sheetRemoval.test.js shared/vehiclePublic.test.mjs",
     "check:images": "node --experimental-strip-types scripts/check-images.mjs",
     "test:e2e": "playwright test"
   },

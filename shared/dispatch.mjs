@@ -9,12 +9,11 @@ function preloadFor(car) {
   return { href, srcSet: srcSet(cover, "avif"), sizes: IMAGE_SIZES };
 }
 
-function leadCar(catalog) {
+function leadCar(catalog, sheetPlates) {
   const rows = (catalog || []).filter(
     (car) =>
-      (car.sucursal || "unidades-chile") === "unidades-chile" &&
       (car.status || "publicado") === "publicado" &&
-      isListedHere(car) &&
+      isListedHere(car, sheetPlates) &&
       coverOf(car),
   );
   rows.sort(
@@ -26,12 +25,12 @@ function leadCar(catalog) {
   return rows[0] || null;
 }
 
-export function decide(url, catalog) {
+export function decide(url, catalog, sheetPlates = null) {
   const origin = publicOrigin(url.host, url.origin);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
 
   if (pathname === "/sitemap.xml") {
-    return { type: "sitemap", body: sitemapXml(origin, catalog), origin };
+    return { type: "sitemap", body: sitemapXml(origin, catalog, sheetPlates), origin };
   }
   if (pathname === "/inventario") {
     return { type: "redirect", status: 301, to: `${origin}/catalogo` };
@@ -39,7 +38,7 @@ export function decide(url, catalog) {
 
   const vehicle = pathname.match(/^\/(?:catalogo|inventario)\/([^/]+)$/);
   if (vehicle) {
-    const decision = resolveVehicle(vehicle[1], catalog);
+    const decision = resolveVehicle(vehicle[1], catalog, sheetPlates);
     if (decision.type === "redirect") {
       const to = decision.to.startsWith("http") ? decision.to : `${origin}${decision.to}`;
       return { type: "redirect", status: decision.status, to };
@@ -62,7 +61,7 @@ export function decide(url, catalog) {
 
   const seo = pageSeo(origin, pathname);
   if (pathname === "/catalogo") {
-    const preload = preloadFor(leadCar(catalog));
+    const preload = preloadFor(leadCar(catalog, sheetPlates));
     if (preload) seo.preload = preload;
   }
   return { type: "html", seo, origin };
