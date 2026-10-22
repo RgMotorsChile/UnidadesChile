@@ -57,9 +57,17 @@ test("la URL vieja redirige 301 y el vendido sale del sitemap", () => {
 test("otra sucursal: 301 si hay ficha y 410 si no", () => {
   const shyl = resolveVehicle(OTHER_BRANCH.SHYL53.legacySlug, catalog);
   assert.equal(shyl.status, 301);
-  assert.equal(shyl.to, OTHER_BRANCH.SHYL53.external);
+  assert.equal(shyl.to, "https://www.rgmotorschile.cl/vehiculo/ford-ranger-4x4-rojo-2023-7cm3a8");
+  assert.equal(shyl.to.includes("shyl53"), false);
+  const stpz = resolveVehicle(OTHER_BRANCH.STPZ87.legacySlug, catalog);
+  assert.equal(stpz.status, 301);
+  assert.equal(stpz.to, "https://www.rgmotorschile.cl/vehiculo/maxus-t60-4x2-at-gris-2023-n57nph");
   const rygb = resolveVehicle(OTHER_BRANCH.RYGB56.legacySlug, catalog);
   assert.equal(rygb.type, "gone");
+  for (const plate of ["GHTD24", "HLXB59", "RZKV76"]) {
+    assert.equal(OTHER_BRANCH[plate], undefined);
+    assert.equal(resolveVehicle(plate, catalog).type, "missing");
+  }
   const decision = decide(new URL(`${origin}/catalogo`), catalog);
   assert.equal(decision.seo.canonical, `${origin}/catalogo`);
   const home = decide(new URL(`${origin}/`), catalog);

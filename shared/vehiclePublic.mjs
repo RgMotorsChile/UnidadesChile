@@ -42,20 +42,26 @@ export const BRANCHES = {
 };
 
 /**
- * Autos del seed local que la hoja ubica en otra sucursal.
- * No se publican en este dominio. El destino externo solo se usa si la ficha
- * del otro sitio responde hoy; si no hay URL confirmada, la respuesta es 410.
+ * Autos del seed que no se publican en este dominio.
+ * Mathias confirmó SHYL53 en RG. El destino es el slug sin patente de
+ * RgMotorsChileWeb PR #34 (rama cursor/auditoria-ficha-seo-sucursal-4f56).
+ * STPZ87 solo figura como CARDONAL en la hoja de RG y esa misma PR ya publica
+ * el slug sin patente: no hay choque entre fuentes.
+ * RYGB56 figura como SALGADO en la hoja de RG y en el bloque de Salgado, sin
+ * URL de ficha confirmada: 410.
+ * GHTD24, HLXB59 y RZKV76 siguen en conflicto. No entran aquí: ni 301, ni 410,
+ * ni se sacan del sitemap.
  */
 export const OTHER_BRANCH = {
   SHYL53: {
     branch: "rg-motors",
     legacySlug: "ford-ranger-4x4-2023-shyl53",
-    external: "https://www.rgmotorschile.cl/vehiculo/ford-ranger-4x4-2023-shyl53",
+    external: "https://www.rgmotorschile.cl/vehiculo/ford-ranger-4x4-rojo-2023-7cm3a8",
   },
   STPZ87: {
     branch: "rg-motors",
     legacySlug: "maxus-t60-4x2-at-2023-stpz87",
-    external: "https://www.rgmotorschile.cl/vehiculo/maxus-t60-4x2-at-2023-stpz87",
+    external: "https://www.rgmotorschile.cl/vehiculo/maxus-t60-4x2-at-gris-2023-n57nph",
   },
   RYGB56: {
     branch: "salgado",

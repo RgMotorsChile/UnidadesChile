@@ -74,7 +74,12 @@ test("301 de patente y 410 sin ficha en la otra sucursal", async ({ request }) =
   const moved = await request.get("/catalogo/ford-ranger-4x4-2023-shyl53", { maxRedirects: 0 });
   expect(moved.status()).toBe(301);
   expect(moved.headers().location).toBe(
-    "https://www.rgmotorschile.cl/vehiculo/ford-ranger-4x4-2023-shyl53",
+    "https://www.rgmotorschile.cl/vehiculo/ford-ranger-4x4-rojo-2023-7cm3a8",
+  );
+  const maxus = await request.get("/catalogo/maxus-t60-4x2-at-2023-stpz87", { maxRedirects: 0 });
+  expect(maxus.status()).toBe(301);
+  expect(maxus.headers().location).toBe(
+    "https://www.rgmotorschile.cl/vehiculo/maxus-t60-4x2-at-gris-2023-n57nph",
   );
   const missing = await request.get("/catalogo/mg-3-hatch-back-2022-rygb56", { maxRedirects: 0 });
   expect(missing.status()).toBe(410);
