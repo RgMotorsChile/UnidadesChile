@@ -1,4 +1,4 @@
-import { apiRouteKey } from "../shared/apiRoute.mjs";
+import { resolveHandlerKey } from "../shared/apiRoute.mjs";
 import catalogIndex from "./_catalog-index.js";
 import consigna from "./_consigna.js";
 import contacto from "./_contacto.js";
@@ -44,8 +44,8 @@ export default async function handler(req: Req, res: Res) {
   if (req.query && Object.prototype.hasOwnProperty.call(req.query, "route")) {
     delete req.query.route;
   }
-  const key = apiRouteKey(req.url);
-  const fn = routes[key as keyof typeof routes];
+  const key = resolveHandlerKey(req.url);
+  const fn = key ? routes[key as keyof typeof routes] : undefined;
   if (!fn) {
     res.statusCode = 404;
     res.setHeader("content-type", "text/plain; charset=utf-8");

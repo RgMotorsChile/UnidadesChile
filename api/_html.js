@@ -29,6 +29,17 @@ export default async function handler(req, res) {
     res.end();
     return;
   }
+  if (decision.type === "sitemap") {
+    res.statusCode = 200;
+    res.setHeader("content-type", "application/xml; charset=utf-8");
+    res.setHeader("cache-control", "public, max-age=300, must-revalidate");
+    if (req.method === "HEAD") {
+      res.end();
+      return;
+    }
+    res.end(decision.body);
+    return;
+  }
   if (decision.type === "gone") {
     res.statusCode = 410;
     res.setHeader("content-type", "text/html; charset=utf-8");
