@@ -1,5 +1,5 @@
 import { deny, isAdminRequest } from "./_auth.js";
-import { purgeCarsMissingFromSheet } from "./sheetRemoval.js";
+import { purgeCarsMissingFromSheet } from "./_sheetRemoval.js";
 
 export const config = { runtime: "nodejs" };
 
