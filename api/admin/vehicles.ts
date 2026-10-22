@@ -1,6 +1,7 @@
 import { deny, isAdminRequest } from "./_auth.js";
 import { orderGalleryWithCover } from "./_cover.js";
 import { CATALOG_ANON_SELECT, dbReader, supabaseAdmin, tenantId } from "./_db.js";
+import { deleteStoredPhotos, dropReason, droppedStoragePaths, photoUrlsOf } from "./_media.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -74,17 +75,45 @@ export default async function handler(
   if (method === "POST" || method === "PUT") {
     const row = vehicleToRow(req.body || {}, tenant);
     if (!row.slug) return res.status(400).json({ ok: false, error: "Falta slug." });
+    const { data: prev, error: prevErr } = await writer
+      .from("catalog_vehicles")
+      .select("image,gallery")
+      .eq("tenant_id", tenant)
+      .eq("slug", row.slug)
+      .maybeSingle();
+    if (prevErr) return res.status(500).json({ ok: false, error: prevErr.message });
     const { error } = await writer.from("catalog_vehicles").upsert(row, { onConflict: "tenant_id,slug" });
     if (error) return res.status(500).json({ ok: false, error: error.message });
-    return res.status(200).json({ ok: true, slug: row.slug });
+    const before = photoUrlsOf(prev);
+    const after = photoUrlsOf(row);
+    const paths = droppedStoragePaths(before, after, row.slug);
+    const storageCleanup = paths.length
+      ? await deleteStoredPhotos({ paths, slug: row.slug, reason: dropReason(before, after, row.slug) })
+      : { deleted: 0, orphans: 0, orphanError: "" };
+    return res.status(200).json({ ok: true, slug: row.slug, storageCleanup });
   }
 
   if (method === "DELETE") {
     const slug = String(req.query?.slug || req.body?.id || req.body?.slug || "");
     if (!slug) return res.status(400).json({ ok: false, error: "Falta slug." });
+    const { data: prev, error: prevErr } = await writer
+      .from("catalog_vehicles")
+      .select("image,gallery")
+      .eq("tenant_id", tenant)
+      .eq("slug", slug)
+      .maybeSingle();
+    if (prevErr) return res.status(500).json({ ok: false, error: prevErr.message });
     const { error } = await writer.from("catalog_vehicles").delete().eq("tenant_id", tenant).eq("slug", slug);
     if (error) return res.status(500).json({ ok: false, error: error.message });
-    return res.status(200).json({ ok: true });
+    const storageCleanup = prev
+      ? await deleteStoredPhotos({
+          paths: droppedStoragePaths(photoUrlsOf(prev), [], slug),
+          slug,
+          reason: "deleted",
+          listSlug: true,
+        })
+      : { deleted: 0, orphans: 0, orphanError: "" };
+    return res.status(200).json({ ok: true, storageCleanup });
   }
 
   return res.status(405).json({ ok: false, error: "Método no permitido." });

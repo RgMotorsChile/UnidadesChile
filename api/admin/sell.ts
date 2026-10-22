@@ -1,5 +1,6 @@
 import { deny, isAdminRequest } from "./_auth.js";
 import { CATALOG_ANON_SELECT, supabaseAdmin, tenantId } from "./_db.js";
+import { deleteStoredPhotos, droppedStoragePaths, photoUrlsOf } from "./_media.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -38,6 +39,13 @@ export default async function handler(
     .eq("slug", slug);
   if (delErr) return res.status(500).json({ ok: false, error: delErr.message });
 
+  const storageCleanup = await deleteStoredPhotos({
+    paths: droppedStoragePaths(photoUrlsOf(row), [], slug),
+    slug,
+    reason: "sold",
+    listSlug: true,
+  });
+
   return res.status(200).json({
     ok: true,
     success: true,
@@ -50,5 +58,6 @@ export default async function handler(
       supplier: req.body?.supplier || "Unidades Chile",
       soldAt: new Date().toISOString(),
     },
+    storageCleanup,
   });
 }
