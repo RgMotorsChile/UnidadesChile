@@ -1,6 +1,11 @@
 export const PLACEHOLDER_WHATSAPP = "56987654321";
+/** WhatsApp de Unidades Chile. No unificar con RG Motors ni Salgado. */
 export const UC_WHATSAPP = "56973236636";
 export const PLACEHOLDER_EMAIL = "hola@unidadeschile.cl";
+/**
+ * DUDA MATHIAS: el correo público del sitio es administracion@rgmotors.cl
+ * (dominio de RG Motors), no un buzón @unidadeschile.cl.
+ */
 export const UC_EMAIL = "administracion@rgmotors.cl";
 
 export const SITE = {

@@ -1,5 +1,5 @@
-import { useMemo, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { CarCard } from "../components/CarCard";
 import { PageTitle } from "../components/PageTitle";
 import { LeadModals } from "../components/LeadModals";
@@ -9,6 +9,8 @@ import { Emblem } from "../components/Logo";
 import { useData } from "../store/DataProvider";
 
 type Sort = "ahorro" | "precio-asc" | "precio-desc";
+
+const PAGE_SIZE = 12;
 
 export function Inventario() {
   const { published: cars, ready } = useData();
@@ -26,6 +28,9 @@ export function Inventario() {
   const [traccion, setTraccion] = useState("");
   const [sort, setSort] = useState<Sort>("ahorro");
   const [pedido, setPedido] = useState(false);
+  const [shown, setShown] = useState(PAGE_SIZE);
+  const [params] = useSearchParams();
+  const soldNotice = params.get("estado") === "vendido";
   const compare = useCompare();
 
   const list = useMemo(() => {
@@ -46,6 +51,12 @@ export function Inventario() {
     });
   }, [cars, marca, modelo, year, carroceria, combustible, transmision, traccion, sort]);
 
+  useEffect(() => {
+    setShown(PAGE_SIZE);
+  }, [marca, modelo, year, carroceria, combustible, transmision, traccion, sort]);
+
+  const visible = list.slice(0, shown);
+
   return (
     <div className="relative mx-auto max-w-[1280px] px-4 pb-28 pt-8 sm:px-6 md:px-8">
       <PageTitle
@@ -60,10 +71,15 @@ export function Inventario() {
           <p className="eyebrow mt-2 sm:mt-3">
             Stock en Puerto Montt
           </p>
+          {soldNotice && (
+            <p className="mt-3 max-w-md text-sm text-white/70">
+              Esa unidad ya se vendió. Este es el stock que sigue disponible.
+            </p>
+          )}
         </div>
         <div className="text-right">
           <p className="text-[28px] font-semibold leading-none sm:text-[48px] md:text-[64px]">{ready ? list.length : "—"}</p>
-          <p className="mt-1 text-[11px] text-white/45 sm:text-sm">unidades disponibles</p>
+          <p className="mt-1 text-[11px] text-white/60 sm:text-sm">unidades disponibles</p>
         </div>
       </div>
 
@@ -171,16 +187,26 @@ export function Inventario() {
 
         <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
           {!ready && list.length === 0
-            ? Array.from({ length: 6 }, (_, i) => (
-                <div
-                  key={i}
-                  aria-hidden
-                  className="h-[360px] animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.04]"
-                />
+            ? Array.from({ length: PAGE_SIZE }, (_, i) => (
+                <div key={i} aria-hidden className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#141414]">
+                  <div className="aspect-[4/3] animate-pulse bg-white/[0.04]" />
+                  <div className="h-[148px] animate-pulse border-t border-white/[0.06] bg-white/[0.03]" />
+                </div>
               ))
-            : list.map((car) => <CarCard key={car.id} car={car} />)}
+            : visible.map((car, index) => <CarCard key={car.id} car={car} priority={index === 0} />)}
         </div>
       </div>
+      {ready && shown < list.length && (
+        <div className="mt-8 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setShown((n) => n + PAGE_SIZE)}
+            className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-medium hover:border-white"
+          >
+            Ver más unidades
+          </button>
+        </div>
+      )}
       <div className="mt-8 flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-[#141414] px-4 py-5 text-center">
         <p className="text-sm text-white/60">¿No está lo que buscas?</p>
         <button
@@ -215,7 +241,7 @@ export function Inventario() {
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="min-w-0 flex-1 text-[11px] text-white/45">
+    <label className="min-w-0 flex-1 text-[11px] text-white/70">
       {label}
       <div className="mt-1.5">{children}</div>
     </label>
@@ -245,7 +271,7 @@ function Side({
         <button
           type="button"
           onClick={() => onChange("")}
-          className={`text-left text-[13px] ${value === "" ? "text-white" : "text-white/40"}`}
+          className={`text-left text-[13px] ${value === "" ? "text-white" : "text-white/70"}`}
         >
           Todas
         </button>
@@ -254,7 +280,7 @@ function Side({
             key={o}
             type="button"
             onClick={() => onChange(o)}
-            className={`text-left text-[13px] ${value === o ? "text-brand" : "text-white/40 hover:text-white"}`}
+            className={`text-left text-[13px] ${value === o ? "text-brand" : "text-white/70 hover:text-white"}`}
           >
             {o}
           </button>

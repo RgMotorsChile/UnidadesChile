@@ -2,50 +2,56 @@ import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import type { Car } from "../data/cars";
 import { clp, savingsLabel } from "../lib/format";
+import { catalogPath, vehicleAlt } from "@shared/vehiclePublic.mjs";
+import { coverSrc } from "../lib/photos";
 import { useFavorites } from "./Favorites";
 import { useCompare } from "./Compare";
-import { coverSrc } from "../lib/photos";
-import { SafeImg } from "../admin/ui";
+import { CarImage } from "./CarImage";
 
 type Props = {
   car: Car;
   layout?: "grid" | "featured";
+  priority?: boolean;
 };
 
 function PhotoWell({
   src,
   alt,
+  priority = false,
   className = "",
 }: {
   src: string;
   alt: string;
+  priority?: boolean;
   className?: string;
 }) {
   return (
     <div className={`car-photo-well relative overflow-hidden ${className}`}>
-      <SafeImg
+      <CarImage
         src={src}
         alt={alt}
+        priority={priority}
         className="absolute inset-0 h-full w-full object-contain object-center p-4 transition duration-700 ease-out group-hover:scale-[1.015] sm:p-5"
       />
     </div>
   );
 }
 
-export function CarCard({ car, layout = "grid" }: Props) {
+export function CarCard({ car, layout = "grid", priority = false }: Props) {
   const { has, toggle } = useFavorites();
   const compare = useCompare();
   const saved = has(car.id);
   const compared = compare.has(car.id);
   const badge = savingsLabel(car.precio, car.mercado);
-  const alt = `${car.marca} ${car.modelo}`;
+  const alt = vehicleAlt(car);
+  const href = catalogPath(car);
 
   if (layout === "featured") {
     return (
       <article className="group relative h-full overflow-hidden rounded-xl border border-white/[0.08] bg-[#141414]">
         <span className="absolute inset-x-0 top-0 z-10 h-px bg-brand/80" />
         <Link
-          to={`/catalogo/${car.id}`}
+          to={href}
           className="grid h-full grid-cols-1 sm:grid-cols-[minmax(8.75rem,0.82fr)_minmax(0,1.28fr)]"
         >
           <div className="flex min-w-0 flex-col justify-center px-3.5 py-4 sm:px-4 sm:py-5">
@@ -56,7 +62,7 @@ export function CarCard({ car, layout = "grid" }: Props) {
               {clp(car.precio)}
             </p>
           </div>
-          <PhotoWell src={coverSrc(car.imagenes)} alt={alt} className="aspect-[4/3] sm:aspect-auto sm:min-h-[188px]" />
+          <PhotoWell src={coverSrc(car.imagenes)} alt={alt} priority={priority} className="aspect-[4/3] sm:aspect-auto sm:min-h-[188px]" />
         </Link>
       </article>
     );
@@ -64,8 +70,8 @@ export function CarCard({ car, layout = "grid" }: Props) {
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414] shadow-[0_18px_40px_-24px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 hover:border-white/16">
-      <Link to={`/catalogo/${car.id}`} className="block">
-        <PhotoWell src={coverSrc(car.imagenes)} alt={alt} className="aspect-[4/3] w-full" />
+      <Link to={href} className="block">
+        <PhotoWell src={coverSrc(car.imagenes)} alt={alt} priority={priority} className="aspect-[4/3] w-full" />
       </Link>
       <button
         type="button"
@@ -89,7 +95,7 @@ export function CarCard({ car, layout = "grid" }: Props) {
         <Heart size={16} strokeWidth={1.6} className={saved ? "fill-brand text-brand" : ""} />
       </button>
       <Link
-        to={`/catalogo/${car.id}`}
+        to={href}
         className="flex flex-1 flex-col border-t border-white/[0.06] px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4"
       >
         <h3 className="line-clamp-2 min-h-[2.6em] text-[15px] font-semibold leading-snug sm:text-[17px]">

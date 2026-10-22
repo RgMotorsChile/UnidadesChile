@@ -10,7 +10,9 @@ export function Logo({ className = "" }: Props) {
       <img
         src="/logos/logo.png"
         alt="Automotriz Unidades Chile"
-        className="h-7 w-auto max-w-[136px] object-contain object-left sm:h-9 sm:max-w-[180px] lg:h-10 lg:max-w-[200px]"
+        width={900}
+        height={172}
+        className="aspect-[900/172] h-7 w-auto max-w-[136px] object-contain object-left sm:h-9 sm:max-w-[180px] lg:h-10 lg:max-w-[200px]"
       />
     </Link>
   );

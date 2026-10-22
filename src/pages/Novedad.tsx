@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useData } from "../store/DataProvider";
 import { SafeImg } from "../admin/ui";
+import { PageTitle } from "../components/PageTitle";
 
 export function Novedad() {
   const { slug } = useParams();
@@ -26,6 +27,7 @@ export function Novedad() {
       {post.portada && (
         <SafeImg src={post.portada} alt="" className="mt-6 aspect-[16/9] w-full rounded-2xl object-cover" />
       )}
+      <PageTitle title={`${post.titulo} | Unidades Chile`} description={post.extracto} />
       <h1 className="mt-6 text-[32px] font-semibold tracking-[-0.03em] sm:text-5xl">{post.titulo}</h1>
       <p className="mt-4 text-lg text-white/55">{post.extracto}</p>
       <div className="mt-8 whitespace-pre-wrap text-[16px] leading-relaxed text-white/80">{post.cuerpo}</div>

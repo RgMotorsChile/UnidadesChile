@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { clp } from "../lib/format";
 import { waLink } from "../lib/config";
+import { catalogPath } from "@shared/vehiclePublic.mjs";
 import { newLead } from "../lib/leads";
 import { useData } from "../store/DataProvider";
 import {
@@ -174,7 +175,7 @@ export function Financia() {
           {published.slice(0, 3).map((c) => (
             <Link
               key={c.id}
-              to={`/catalogo/${c.id}`}
+              to={catalogPath(c)}
               className="rounded-2xl bg-[#141414] p-4 hover:red-glow"
             >
               <p className="text-lg font-semibold">

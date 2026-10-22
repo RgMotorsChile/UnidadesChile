@@ -2,8 +2,9 @@ import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { PageTitle } from "../components/PageTitle";
 import { useCompare } from "../components/Compare";
-import { SafeImg } from "../admin/ui";
 import { clp } from "../lib/format";
+import { catalogPath, vehicleAlt } from "@shared/vehiclePublic.mjs";
+import { CarImage } from "../components/CarImage";
 import { cuotaDesde } from "../lib/autofin";
 import { usePublishedCars } from "../store/DataProvider";
 
@@ -89,7 +90,7 @@ export function Comparador() {
             {selected.map((car, i) => (
               <article key={car.id} className="rounded-2xl border border-white/10 bg-[#141414] p-4">
                 <div className="car-photo-well aspect-[4/3] overflow-hidden rounded-xl">
-                  <SafeImg src={car.imagenes[0]} alt={`${car.marca} ${car.modelo}`} className="h-full w-full object-contain p-3" />
+                  <CarImage src={car.imagenes[0]} alt={vehicleAlt(car)} className="h-full w-full object-contain p-3" />
                 </div>
                 <p className="mt-3 text-sm font-semibold">
                   {car.marca} {car.modelo}
@@ -107,7 +108,7 @@ export function Comparador() {
                   <button type="button" onClick={() => toggle(car.id)} className="text-[11px] text-white/40">
                     Quitar
                   </button>
-                  <Link to={`/catalogo/${car.id}`} className="rounded-full bg-brand px-4 py-2 text-[12px] font-medium">
+                  <Link to={catalogPath(car)} className="rounded-full bg-brand px-4 py-2 text-[12px] font-medium">
                     Ver ficha
                   </Link>
                 </div>
@@ -125,11 +126,7 @@ export function Comparador() {
                     <th key={car.id} className="p-3 align-top">
                       <div className="rounded-2xl border border-white/[0.08] bg-[#141414] p-3 text-left">
                         <div className="car-photo-well aspect-[4/3] overflow-hidden rounded-xl">
-                          <SafeImg
-                            src={car.imagenes[0]}
-                            alt={`${car.marca} ${car.modelo}`}
-                            className="h-full w-full object-contain p-3"
-                          />
+                          <CarImage src={car.imagenes[0]} alt={vehicleAlt(car)} className="h-full w-full object-contain p-3" />
                         </div>
                         <p className="mt-3 text-sm font-semibold">
                           {car.marca} {car.modelo}
@@ -169,7 +166,7 @@ export function Comparador() {
                   {selected.map((car) => (
                     <td key={`cta-${car.id}`} className="border-t border-white/5 px-3 py-4">
                       <Link
-                        to={`/catalogo/${car.id}`}
+                        to={catalogPath(car)}
                         className="inline-flex rounded-full bg-brand px-4 py-2 text-[12px] font-medium"
                       >
                         Ver ficha

@@ -1,0 +1,272 @@
+[
+  {
+    "id": "mitsubishi-new-katana-4x2-2023-srcp17",
+    "unidad": "SRCP 17",
+    "marca": "Mitsubishi",
+    "modelo": "NEW KATANA 4X2",
+    "version": "NEW KATANA 4X2",
+    "year": 2023,
+    "precio": 13990000,
+    "km": 75000,
+    "imagenes": [
+      "/cars/stock/srcp17/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 15490000
+  },
+  {
+    "id": "mitsubishi-l200-katana-4x4-2020-lxcy98",
+    "unidad": "LXCY 98",
+    "marca": "Mitsubishi",
+    "modelo": "L200 KATANA 4x4",
+    "version": "L200 KATANA 4x4",
+    "year": 2020,
+    "precio": 13490000,
+    "km": 156000,
+    "imagenes": [
+      "/cars/stock/lxcy98/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 14490000
+  },
+  {
+    "id": "toyota-new-hilux-4x2-2022-rpkd45",
+    "unidad": "RPKD 45",
+    "marca": "Toyota",
+    "modelo": "NEW HILUX 4X2",
+    "version": "NEW HILUX 4X2",
+    "year": 2022,
+    "precio": 14990000,
+    "km": 135704,
+    "imagenes": [
+      "/cars/stock/rpkd45/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 15990000
+  },
+  {
+    "id": "toyota-hilux-4x4-2022-rzvk91",
+    "unidad": "RZVK 91",
+    "marca": "Toyota",
+    "modelo": "HILUX 4X4",
+    "version": "HILUX 4X4",
+    "year": 2022,
+    "precio": 17990000,
+    "km": 151000,
+    "imagenes": [
+      "/cars/stock/rzvk91/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 18990000
+  },
+  {
+    "id": "ram-v700-2021-ptfc69",
+    "unidad": "PTFC 69",
+    "marca": "RAM",
+    "modelo": "V700",
+    "version": "V700",
+    "year": 2021,
+    "precio": 6990000,
+    "km": 141000,
+    "imagenes": [
+      "/cars/stock/ptfc69/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 7990000
+  },
+  {
+    "id": "peugeot-partner-1-6-2023-sfxy80",
+    "unidad": "SFXY 80",
+    "marca": "Peugeot",
+    "modelo": "PARTNER 1,6",
+    "version": "PARTNER 1,6",
+    "year": 2023,
+    "precio": 10490000,
+    "km": 119136,
+    "imagenes": [
+      "/cars/stock/sfxy80/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 11490000
+  },
+  {
+    "id": "peugeot-partner-2021-psjj97",
+    "unidad": "PSJJ 97",
+    "marca": "Peugeot",
+    "modelo": "PARTNER",
+    "version": "PARTNER",
+    "year": 2021,
+    "precio": 8990000,
+    "km": 104900,
+    "imagenes": [
+      "/cars/stock/psjj97/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 10490000
+  },
+  {
+    "id": "peugeot-partner-2025-tsxk53",
+    "unidad": "TSXK 53",
+    "marca": "Peugeot",
+    "modelo": "PARTNER",
+    "version": "PARTNER",
+    "year": 2025,
+    "precio": 12990000,
+    "km": 70000,
+    "imagenes": [
+      "/cars/stock/tsxk53/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 13990000
+  },
+  {
+    "id": "peugeot-partner-2021-pysy84",
+    "unidad": "PYSY 84",
+    "marca": "Peugeot",
+    "modelo": "PARTNER",
+    "version": "PARTNER",
+    "year": 2021,
+    "precio": 8990000,
+    "km": 160000,
+    "imagenes": [
+      "/cars/stock/pysy84/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 10990000
+  },
+  {
+    "id": "volkswagen-saveiro-dc-2023-sfrt83",
+    "unidad": "SFRT 83",
+    "marca": "Volkswagen",
+    "modelo": "SAVEIRO DC",
+    "version": "SAVEIRO DC",
+    "year": 2023,
+    "precio": 9990000,
+    "km": 69000,
+    "imagenes": [
+      "/cars/stock/sfrt83/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 10990000
+  },
+  {
+    "id": "maxus-t60-4x2-at-2023-stpz87",
+    "unidad": "STPZ 87",
+    "marca": "Maxus",
+    "modelo": "T60 4X2 AT",
+    "version": "T60 4X2 AT",
+    "year": 2023,
+    "precio": 12990000,
+    "km": 78000,
+    "imagenes": [
+      "/cars/stock/stpz87/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 14990000
+  },
+  {
+    "id": "maxus-t60-dx-4x4-2023-ssdt39",
+    "unidad": "SSDT 39",
+    "marca": "Maxus",
+    "modelo": "T60 DX 4X4",
+    "version": "T60 DX 4X4",
+    "year": 2023,
+    "precio": 10990000,
+    "km": 134000,
+    "imagenes": [
+      "/cars/stock/ssdt39/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 11990000
+  },
+  {
+    "id": "mg-3-hatch-back-2022-rygb56",
+    "unidad": "RYGB 56",
+    "marca": "MG",
+    "modelo": "3 HATCH BACK",
+    "version": "3 HATCH BACK",
+    "year": 2022,
+    "precio": 7490000,
+    "km": 60900,
+    "imagenes": [
+      "/cars/stock/rygb56/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 8490000
+  },
+  {
+    "id": "chevrolet-dmax-4x2-2020-lxbc60",
+    "unidad": "LXBC 60",
+    "marca": "Chevrolet",
+    "modelo": "DMAX 4X2",
+    "version": "DMAX 4X2",
+    "year": 2020,
+    "precio": 10990000,
+    "km": 195000,
+    "imagenes": [
+      "/cars/stock/lxbc60/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 11990000
+  },
+  {
+    "id": "chevrolet-colorado-4x4-2022-rzsy35",
+    "unidad": "RZSY 35",
+    "marca": "Chevrolet",
+    "modelo": "COLORADO 4X4",
+    "version": "COLORADO 4X4",
+    "year": 2022,
+    "precio": 16990000,
+    "km": 144800,
+    "imagenes": [
+      "/cars/stock/rzsy35/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 17990000
+  },
+  {
+    "id": "ford-ranger-4x4-2023-shyl53",
+    "unidad": "SHYL 53",
+    "marca": "Ford",
+    "modelo": "RANGER 4X4",
+    "version": "RANGER 4X4",
+    "year": 2023,
+    "precio": 15990000,
+    "km": 104628,
+    "imagenes": [
+      "/cars/stock/shyl53/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 16990000
+  },
+  {
+    "id": "ssangyong-musso-grand-4x2-2021-rdhb85",
+    "unidad": "RDHB 85",
+    "marca": "SsangYong",
+    "modelo": "MUSSO GRAND 4X2",
+    "version": "MUSSO GRAND 4X2",
+    "year": 2021,
+    "precio": 11990000,
+    "km": 156000,
+    "imagenes": [
+      "/cars/stock/rdhb85/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 12990000
+  },
+  {
+    "id": "nissan-navara-4x4-2022-rhyh38",
+    "unidad": "RHYH 38",
+    "marca": "Nissan",
+    "modelo": "NAVARA 4X4",
+    "version": "NAVARA 4X4",
+    "year": 2022,
+    "precio": 15990000,
+    "km": 135000,
+    "imagenes": [
+      "/cars/stock/rhyh38/00.jpg"
+    ],
+    "status": "publicado",
+    "mercado": 16990000
+  }
+]

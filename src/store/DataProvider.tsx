@@ -6,6 +6,7 @@ import { PENDING_PHOTO, isRemotePhoto } from "../lib/photos";
 import { isSupabaseConfigured } from "../lib/supabase";
 import { adminDeleteVehicle, adminSaveVehicle } from "../lib/adminApi";
 import { filterToSheetPlates, fetchSheetPlates } from "../lib/sheetPlates";
+import { isListedHere } from "@shared/vehiclePublic.mjs";
 import { isUnidadesChileStock, plateKey } from "../lib/sources";
 
 const seedByPlate = new Map(cars.map((car) => [plateKey(car.unidad), car]));
@@ -123,7 +124,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const published = useMemo(
-    () => vehicles.filter((v) => v.status === "publicado" && isUnidadesChileStock(v.unidad)),
+    () =>
+      vehicles.filter(
+        (v) => v.status === "publicado" && isUnidadesChileStock(v.unidad) && isListedHere(v),
+      ),
     [vehicles],
   );
 

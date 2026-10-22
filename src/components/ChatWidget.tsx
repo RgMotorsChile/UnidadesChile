@@ -3,13 +3,19 @@ import { Link, useLocation } from "react-router-dom";
 import { MessageCircle, X } from "lucide-react";
 import { clp } from "../lib/format";
 import { waLink } from "../lib/config";
+import { catalogPath, publicSlug } from "@shared/vehiclePublic.mjs";
 import { newLead } from "../lib/leads";
 import { useData } from "../store/DataProvider";
 import { WhatsAppIcon } from "./Header";
 
 type Msg = { role: "user" | "ai"; text: string; ids?: string[] };
 
-function reply(q: string, cars: { id: string; marca: string; modelo: string; year: number; precio: number; carroceria: string }[]) {
+function reply(
+  q: string,
+  cars: { id: string; marca: string; modelo: string; year: number; precio: number; carroceria: string }[],
+  address: string,
+  hours: string,
+) {
   const t = q.toLowerCase();
   if (/hola|buenas|hey/.test(t)) {
     return { text: "Hola. ¿Buscas pickup, furgón o algo más chico? También puedo pasarte con un ejecutivo." };
@@ -21,7 +27,7 @@ function reply(q: string, cars: { id: string; marca: string; modelo: string; yea
     return { text: "En /consigna-tu-vehiculo dejas los datos y fotos del auto. Nos llega un correo y te contactamos." };
   }
   if (/dónde|donde|dirección|direccion|sucursal|mapa/.test(t)) {
-    return { text: "Estamos en Regimiento #1207, Puerto Montt. Lun a Sáb de 10:00 a 19:00." };
+    return { text: `Estamos en ${address}. ${hours}.` };
   }
   const hit = cars.filter((c) => {
     const blob = `${c.marca} ${c.modelo} ${c.carroceria}`.toLowerCase();
@@ -52,7 +58,7 @@ export function ChatWidget() {
 
   const pageCar = useMemo(() => {
     const m = pathname.match(/^\/catalogo\/([^/?#]+)/);
-    return m?.[1] ? published.find((c) => c.id === m[1]) : undefined;
+    return m?.[1] ? published.find((c) => c.id === m[1] || publicSlug(c) === m[1]) : undefined;
   }, [pathname, published]);
 
   if (pathname.startsWith("/admin")) return null;
@@ -60,7 +66,7 @@ export function ChatWidget() {
   const send = (text: string) => {
     const q = text.trim();
     if (!q) return;
-    const ans = reply(q, published);
+    const ans = reply(q, published, settings.address, settings.hours);
     setMsgs((prev) => [...prev, { role: "user", text: q }, { role: "ai", ...ans }]);
     setInput("");
     if (/whatsapp|ejecutivo|humano/.test(q.toLowerCase())) {
@@ -104,7 +110,7 @@ export function ChatWidget() {
                       return (
                         <Link
                           key={id}
-                          to={`/catalogo/${id}`}
+                          to={catalogPath(c)}
                           className="block rounded-xl border border-white/10 px-3 py-2 text-[12px] hover:border-white/25"
                         >
                           {c.marca} {c.modelo} · {clp(c.precio)}

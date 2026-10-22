@@ -1,0 +1,96 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import { decide } from "./dispatch.mjs";
+import { catalogFromLocal } from "./catalog.mjs";
+import {
+  OTHER_BRANCH,
+  carJson,
+  pageSeo,
+  plateKey,
+  publicSlug,
+  resolveVehicle,
+  sitemapXml,
+  stripPlate,
+  vehicleDescription,
+  vehicleTitle,
+} from "./vehiclePublic.mjs";
+
+const local = JSON.parse(readFileSync(new URL("./local-catalog.json", import.meta.url), "utf8"));
+const catalog = catalogFromLocal(local);
+const origin = "https://www.unidadeschile.cl";
+
+test("el slug público no contiene la patente", () => {
+  for (const car of catalog) {
+    const slug = publicSlug(car);
+    const plate = plateKey(car.unidad).toLowerCase();
+    assert.ok(slug.length > 8, slug);
+    assert.equal(slug.includes(plate), false, `${slug} incluye ${plate}`);
+    assert.match(slug, new RegExp(`-${car.year}-`));
+  }
+  const slugs = catalog.map((car) => car.publicSlug);
+  assert.equal(new Set(slugs).size, slugs.length);
+});
+
+test("la URL vieja redirige 301 y el vendido sale del sitemap", () => {
+  const sample = catalog.find((car) => car.sucursal === "unidades-chile");
+  assert.ok(sample);
+  const legacy = resolveVehicle(sample.id, catalog);
+  assert.equal(legacy.type, "redirect");
+  assert.equal(legacy.status, 301);
+  assert.equal(legacy.to, `/catalogo/${sample.publicSlug}`);
+
+  const sold = { ...sample, status: "vendido", sucursal: "unidades-chile" };
+  const goneSale = resolveVehicle(sample.publicSlug, [sold]);
+  assert.equal(goneSale.type, "redirect");
+  assert.equal(goneSale.to, "/catalogo?estado=vendido");
+
+  const xml = sitemapXml(origin, catalog);
+  assert.match(xml, new RegExp(`/catalogo/${sample.publicSlug}`));
+  assert.equal(xml.includes(sample.id), false);
+  assert.equal(xml.includes("shyl53"), false);
+  assert.equal(xml.includes("rygb56"), false);
+  assert.equal(xml.includes("stpz87"), false);
+  assert.match(xml, /<lastmod>/);
+});
+
+test("otra sucursal: 301 si hay ficha y 410 si no", () => {
+  const shyl = resolveVehicle(OTHER_BRANCH.SHYL53.legacySlug, catalog);
+  assert.equal(shyl.status, 301);
+  assert.equal(shyl.to, OTHER_BRANCH.SHYL53.external);
+  const rygb = resolveVehicle(OTHER_BRANCH.RYGB56.legacySlug, catalog);
+  assert.equal(rygb.type, "gone");
+  const decision = decide(new URL(`${origin}/catalogo`), catalog);
+  assert.equal(decision.seo.canonical, `${origin}/catalogo`);
+  const home = decide(new URL(`${origin}/`), catalog);
+  assert.equal(home.seo.canonical, `${origin}/`);
+  assert.notEqual(decision.seo.canonical, home.seo.canonical);
+});
+
+test("schema Car y textos sin patente", () => {
+  const car = catalog.find((row) => row.sucursal === "unidades-chile" && row.km > 0 && row.precio > 0);
+  const seo = pageSeo(origin, `/catalogo/${car.publicSlug}`, car);
+  const node = seo.jsonLd["@graph"].find((item) => item["@type"] === "Car");
+  assert.equal(node.offers.priceCurrency, "CLP");
+  assert.equal(node.offers.price, car.precio);
+  assert.match(node.offers.availability, /InStock/);
+  assert.match(node.vehicleCondition, /UsedCondition/);
+  assert.equal(node.mileageFromOdometer.unitCode, "KMT");
+  assert.equal(node.mileageFromOdometer.value, car.km);
+  assert.equal(node.modelDate, String(car.year));
+  assert.equal(node.brand["@type"], "Brand");
+  assert.ok(node.brand.name);
+  assert.match(node.image, /^https:\/\//);
+  assert.equal(seo.jsonLd["@graph"].some((item) => item["@type"] === "AutoDealer"), true);
+  assert.equal(seo.jsonLd["@graph"].some((item) => item["@type"] === "BreadcrumbList"), true);
+  assert.equal(seo.jsonLd["@graph"].some((item) => item["@type"] === "WebSite"), true);
+  const blob = JSON.stringify(seo.jsonLd) + vehicleTitle(car) + vehicleDescription(car);
+  assert.equal(blob.toLowerCase().includes(plateKey(car.unidad).toLowerCase()), false);
+  assert.match(vehicleDescription(car), /\$200\.000/);
+  assert.match(vehicleDescription(car), /prueba de manejo/);
+  assert.match(vehicleTitle(car), /\$/);
+  const pending = carJson(origin, { ...car, precio: 0, km: 0, year: car.year });
+  assert.equal(pending.offers, undefined);
+  assert.equal(pending.mileageFromOdometer, undefined);
+  assert.match(stripPlate(`Unidad ${car.unidad} ${car.marca}`, car.unidad), new RegExp(car.marca, "i"));
+});

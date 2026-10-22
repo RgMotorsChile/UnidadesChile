@@ -3,6 +3,7 @@ import { Clock3, MapPin, Navigation } from "lucide-react";
 import { CarCard } from "../components/CarCard";
 import { TrustBar } from "../components/TrustBar";
 import { clp, savingsLabel } from "../lib/format";
+import { catalogPath } from "@shared/vehiclePublic.mjs";
 import { hasRemotePhotos } from "../lib/photos";
 import { useData } from "../store/DataProvider";
 import { PageTitle } from "../components/PageTitle";
@@ -90,7 +91,7 @@ export function Home() {
               )}
               {cheapestL200 && (
                 <Link
-                  to={`/catalogo/${cheapestL200.id}`}
+                  to={catalogPath(cheapestL200)}
                   className="mt-7 block w-full max-w-[220px] rounded-2xl border border-white/10 bg-black/45 px-4 py-3.5 backdrop-blur-md lg:hidden"
                 >
                   <p className="text-[12px] font-medium text-white/55">Mitsubishi L200</p>
@@ -110,7 +111,7 @@ export function Home() {
 
           {cheapestL200 && (
             <Link
-              to={`/catalogo/${cheapestL200.id}`}
+              to={catalogPath(cheapestL200)}
               className="absolute right-5 z-20 hidden w-[min(220px,calc(100%-2rem))] rounded-2xl border border-white/10 bg-black/40 px-4 py-3.5 backdrop-blur-md hover:border-white/25 sm:right-10 sm:bottom-[16%] lg:right-[5%] lg:block"
             >
               <p className="text-[12px] font-medium text-white/55">Mitsubishi L200</p>
@@ -139,8 +140,8 @@ export function Home() {
             </h2>
           </div>
           <div className="mt-8 grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
-            {rail.map((car) => (
-              <CarCard key={car.id} car={car} layout="featured" />
+            {rail.map((car, index) => (
+              <CarCard key={car.id} car={car} layout="featured" priority={index === 0} />
             ))}
           </div>
           <div className="mt-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">

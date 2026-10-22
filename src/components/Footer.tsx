@@ -73,8 +73,8 @@ export function Footer() {
               +56 9 6471 0361
             </a>
             <span className="text-white/20">&middot;</span>
-            <a href="mailto:mathias.jara@hotmail.com" className="hover:text-white">
-              mathias.jara@hotmail.com
+            <a href="https://southsoftware.cl" className="hover:text-white">
+              Desarrollado por South Software
             </a>
           </span>
         </div>

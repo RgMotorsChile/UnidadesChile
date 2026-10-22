@@ -12,3 +12,6 @@ ENTREGA LINEA GRAFICA-20260901T230224Z-1-001.zip
 .env.*
 !.env.example
 scratch/
+test-results/
+playwright-report/
+blob-report/

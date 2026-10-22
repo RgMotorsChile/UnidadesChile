@@ -36,7 +36,12 @@ body {
 
 ::selection {
   background: #ff0c40;
-  color: #fff;
+  color: #140005;
+}
+
+/* El blanco sobre #ff0c40 queda en 3.9:1. El texto oscuro sobre el mismo rojo pasa 4.5:1. */
+.bg-brand {
+  color: #140005;
 }
 
 ::-webkit-scrollbar {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { Fuel, MapPin, Printer, Settings2, User, Waypoints } from "lucide-react";
 import { clp } from "../lib/format";
 import { cuotaDesde } from "../lib/autofin";
@@ -11,13 +11,14 @@ import { TestDrive } from "../components/TestDrive";
 import { LeadModals } from "../components/LeadModals";
 import { useCompare } from "../components/Compare";
 import { coverSrc } from "../lib/photos";
-import { SafeImg } from "../admin/ui";
+import { catalogPath, publicSlug, stripPlate, vehicleAlt } from "@shared/vehiclePublic.mjs";
+import { CarImage } from "../components/CarImage";
 import { useData } from "../store/DataProvider";
 
 export function Auto() {
   const { id } = useParams();
   const { published, bumpViews, saveLead, settings, ready } = useData();
-  const car = id ? published.find((v) => v.id === id) : undefined;
+  const car = id ? published.find((v) => publicSlug(v) === id || v.id === id) : undefined;
   const [shot, setShot] = useState(0);
   const [alerta, setAlerta] = useState(false);
   const compare = useCompare();
@@ -45,9 +46,14 @@ export function Auto() {
     );
   }
 
+  if (car && id !== publicSlug(car)) {
+    return <Navigate to={catalogPath(car)} replace />;
+  }
+
   if (!car) {
     return (
       <div className="px-4 py-24 text-center">
+        <PageTitle title="Unidad no encontrada | Unidades Chile" robots="noindex" />
         <h1 className="text-4xl font-semibold">Unidad no encontrada</h1>
         <Link to="/catalogo" className="mt-6 inline-block text-brand">
           Volver al catálogo
@@ -62,21 +68,18 @@ export function Auto() {
     { icon: Fuel, label: car.combustible },
     { icon: Waypoints, label: car.traccion },
     { icon: User, label: `${car.duenos} dueño` },
-    { icon: MapPin, label: car.ciudad },
+    { icon: MapPin, label: settings.city },
   ];
-  const msg = `Hola, quiero reservar la unidad ${car.unidad}: ${car.marca} ${car.modelo} ${car.year}.`;
-  const visitMsg = `Quiero agendar visita para ${car.marca} ${car.modelo} ${car.year} (unidad ${car.unidad}).`;
+  const msg = `Hola, quiero reservar el ${car.marca} ${car.modelo} ${car.year}.`;
+  const visitMsg = `Quiero agendar una prueba de manejo para el ${car.marca} ${car.modelo} ${car.year}.`;
   const track = (origen: string, mensaje: string) => {
     void saveLead(newLead({ origen, mensaje, vehicleId: car.id, nombre: `${car.marca} ${car.modelo}` }));
   };
 
   return (
     <div className="mx-auto max-w-[1280px] px-4 pb-28 pt-5 sm:px-6 md:px-8">
-      <PageTitle
-        title={`${car.marca} ${car.modelo} ${car.year} | Unidades Chile`}
-        description={`${car.marca} ${car.modelo} ${car.year} en Puerto Montt. ${clp(car.precio)}. Unidad ${car.unidad}.`}
-      />
-      <p className="text-xs text-white/40 sm:text-sm">
+      <PageTitle car={car} />
+      <p className="text-xs text-white/60 sm:text-sm">
         <Link to="/catalogo" className="hover:text-white">Catálogo</Link>
         {" / "}
         {car.carroceria}
@@ -91,32 +94,36 @@ export function Auto() {
           <div className="absolute bottom-3 left-1/2 z-20 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 gap-2 overflow-x-auto px-1 sm:left-4 sm:top-5 sm:bottom-auto sm:max-w-none sm:translate-x-0 sm:flex-col sm:overflow-visible">
             {(car.imagenes.length ? car.imagenes : [coverSrc(car.imagenes)]).map((src, i) => (
               <button
-                key={src}
+                key={`${src}-${i}`}
                 type="button"
                 onClick={() => setShot(i)}
-                className={`h-12 w-14 overflow-hidden rounded-md border sm:h-14 sm:w-16 ${
+                aria-label={`Foto ${i + 1}`}
+                className={`relative h-12 w-14 overflow-hidden rounded-md border sm:h-14 sm:w-16 ${
                   i === shot ? "border-brand" : "border-white/20"
                 }`}
               >
-                <SafeImg src={src} alt="" className="h-full w-full object-cover" />
+                <CarImage src={src} alt="" className="h-full w-full object-cover" sizes="64px" />
               </button>
             ))}
           </div>
-          <SafeImg
+          <CarImage
             src={car.imagenes[shot] || coverSrc(car.imagenes)}
-            alt={`${car.marca} ${car.modelo}`}
+            alt={vehicleAlt(car)}
+            priority
+            sizes="(max-width: 1024px) 100vw, 720px"
             className="aspect-[16/11] w-full object-cover object-center"
           />
         </div>
 
         <div>
           <p className="eyebrow">
-            Unidad {car.unidad} · {car.certificado ? "Certificada" : "En revisión"}
+            {car.certificado ? "Certificada" : "En revisión"}
+            {car.year > 0 ? ` · ${car.year}` : ""}
           </p>
           <h1 className="mt-3 break-words text-[28px] font-semibold leading-[1.02] tracking-[-0.03em] sm:text-[40px] md:text-[52px]">
             {car.marca} {car.modelo}
             <span className="mt-1 block text-[18px] text-white/80 sm:text-[28px]">
-              {car.version} {car.year}
+              {stripPlate(`${car.version} ${car.year}`.trim(), car.unidad)}
             </span>
           </h1>
           <p className="mt-5 break-words text-[28px] font-semibold tracking-tight sm:mt-6 sm:text-[40px]">{clp(car.precio)}</p>
@@ -187,13 +194,13 @@ export function Auto() {
 
           <p className="mt-8 text-[20px] font-semibold sm:text-[22px]">
             Desde {clp(cuotaDesde(car.precio))}{" "}
-            <span className="text-base font-normal text-white/45">/ mes · pie 20% · 48 cuotas</span>
+            <span className="text-base font-normal text-white/60">/ mes · pie 20% · 48 cuotas</span>
           </p>
           <div className="mt-2 h-px w-36 bg-brand" />
           <Link to="/financia" className="mt-3 inline-block text-sm text-brand">
             Simular financiamiento
           </Link>
-          <p className="mt-3 text-[11px] text-white/35">
+          <p className="mt-3 text-[11px] text-white/60">
             Referencial.{" "}
             <Link to="/aviso-credito" className="underline underline-offset-2">
               Aviso de crédito
