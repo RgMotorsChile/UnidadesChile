@@ -2,9 +2,10 @@
   "framework": "vite",
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/", "destination": "/api/html" },
     {
-      "source": "/((?!api/|images/|cars/|logos/|favicon|og-image|robots|sitemap|site.webmanifest|apple-touch).*)",
-      "destination": "/index.html"
+      "source": "/:path((?!api/|images/|cars/|logos/|favicon|og-image|robots|sitemap|site.webmanifest|apple-touch).*)",
+      "destination": "/api/html?path=:path"
     }
   ],
   "headers": [

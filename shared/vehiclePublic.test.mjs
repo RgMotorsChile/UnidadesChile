@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { decide } from "./dispatch.mjs";
+import { urlFromHtmlFunction } from "./htmlRequest.mjs";
 import { catalogFromLocal } from "./catalog.mjs";
 import {
   carJson,
@@ -130,4 +131,21 @@ test("schema Car y textos sin patente", () => {
   assert.equal(pending.offers, undefined);
   assert.equal(pending.mileageFromOdometer, undefined);
   assert.match(stripPlate(`Unidad ${car.unidad} ${car.marca}`, car.unidad), new RegExp(car.marca, "i"));
+});
+
+test("la función HTML recupera la ruta pública que reescribió Vercel", () => {
+  const plate = urlFromHtmlFunction(
+    "/api/html?path=catalogo/toyota-hilux-4x4-2022-rzvk91",
+    "www.unidadeschile.cl",
+  );
+  assert.equal(plate.pathname, "/catalogo/toyota-hilux-4x4-2022-rzvk91");
+  assert.equal(plate.host, "www.unidadeschile.cl");
+
+  const filtered = urlFromHtmlFunction("/api/html?path=catalogo&estado=vendido", "www.unidadeschile.cl");
+  assert.equal(filtered.pathname, "/catalogo");
+  assert.equal(filtered.searchParams.get("estado"), "vendido");
+  assert.equal(filtered.searchParams.get("path"), null);
+
+  const home = urlFromHtmlFunction("/api/html", "www.unidadeschile.cl");
+  assert.equal(home.pathname, "/");
 });
