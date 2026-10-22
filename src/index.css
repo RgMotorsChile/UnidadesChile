@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #ff0c40;
-  --color-brand-dark: #c20832;
+  --color-brand: #c8103a;
+  --color-brand-dark: #8e0c26;
   --color-ink: #000000;
   --color-ink-2: #0a0a0a;
   --color-card: #161616;
@@ -35,13 +35,39 @@ body {
 }
 
 ::selection {
-  background: #ff0c40;
-  color: #140005;
+  background: #c8103a;
+  color: #fff;
 }
 
-/* El blanco sobre #ff0c40 queda en 3.9:1. El texto oscuro sobre el mismo rojo pasa 4.5:1. */
+/* #ff0c40 con blanco queda en 3.9:1. #c8103a llega a 5.8:1, así que el texto vuelve a blanco. */
 .bg-brand {
-  color: #140005;
+  color: #fff;
+}
+
+a.bg-brand,
+button.bg-brand {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 10px 22px -16px rgba(80, 6, 22, 0.95);
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+a.bg-brand:hover,
+button.bg-brand:hover:not(:disabled) {
+  background-color: #8e0c26;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 14px 26px -14px rgba(60, 4, 16, 0.95);
+}
+
+a.bg-brand:focus-visible,
+button.bg-brand:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
 ::-webkit-scrollbar {
@@ -57,7 +83,7 @@ body {
 }
 
 .red-glow {
-  box-shadow: 0 0 0 1px #ff0c40, 0 10px 36px rgba(255, 12, 64, 0.22);
+  box-shadow: 0 0 0 1px #c8103a, 0 10px 36px rgba(200, 16, 58, 0.22);
 }
 
 .hero-floor {
@@ -77,7 +103,13 @@ body {
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  color: #ff0c40;
+}
+
+/* El relleno #c8103a no alcanza 4.5:1 como texto sobre negro. Las etiquetas usan un rojo más claro. */
+.text-brand,
+.eyebrow,
+.hover\:text-brand:hover {
+  color: #ff2d55;
 }
 
 img,
@@ -106,7 +138,7 @@ iframe {
 }
 
 .field:focus {
-  border-color: #ff0c40;
+  border-color: #c8103a;
 }
 
 @media (max-width: 640px) {
@@ -118,7 +150,7 @@ iframe {
 
 .neon-line {
   height: 2px;
-  background: #ff0c40;
+  background: #c8103a;
   box-shadow: 0 0 18px 4px rgba(255, 12, 64, 0.7), 0 0 50px 8px rgba(255, 12, 64, 0.25);
 }
 
