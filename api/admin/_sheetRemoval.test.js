@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { VEHICLE_PHOTOS_BUCKET } from "./_media.js";
-import { carsAbsentFromSheet, purgeCarsMissingFromSheet, storagePathsForRemovedCar } from "./sheetRemoval.js";
+import { carsAbsentFromSheet, purgeCarsMissingFromSheet, storagePathsForRemovedCar } from "./_sheetRemoval.js";
 import { platesFromSheetCsv } from "../../shared/sheetPlates.mjs";
 
 const SLUG = "ford-ranger-4x4-2023-shyl53";
