@@ -70,6 +70,42 @@ test("ficha, OG y schema", async ({ page, request }) => {
   expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
 });
 
+test("el botón Consigna del inicio tapa la foto", async ({ page }) => {
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    const button = page.locator("section").first().getByRole("link", { name: "Consigna tu vehículo" });
+    await expect(button).toBeVisible();
+    const paint = await button.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return {
+        backgroundColor: style.backgroundColor,
+        backgroundImage: style.backgroundImage,
+        backdropFilter: style.backdropFilter,
+        color: style.color,
+        borderTopWidth: style.borderTopWidth,
+        borderRadius: style.borderRadius,
+      };
+    });
+    expect(paint.backgroundColor).toBe("rgb(0, 0, 0)");
+    expect(paint.backgroundImage).toBe("none");
+    expect(paint.backdropFilter === "none" || paint.backdropFilter === "").toBeTruthy();
+    expect(paint.color).toBe("rgb(255, 255, 255)");
+    expect(paint.borderTopWidth).toBe("1px");
+    expect(Number.parseFloat(paint.borderRadius)).toBeGreaterThan(20);
+    await button.hover();
+    const hovered = await button.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { backgroundColor: style.backgroundColor, color: style.color };
+    });
+    expect(hovered.backgroundColor).toBe("rgb(0, 0, 0)");
+    expect(hovered.color).toBe("rgb(255, 255, 255)");
+  }
+});
+
 test("301 cruzado y ficha compartida sin 410", async ({ request }) => {
   const moved = await request.get("/catalogo/ford-ranger-4x4-2023-shyl53", { maxRedirects: 0 });
   expect(moved.status()).toBe(301);
