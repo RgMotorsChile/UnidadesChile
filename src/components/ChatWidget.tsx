@@ -75,7 +75,7 @@ export function ChatWidget() {
   };
 
   return (
-    <div className="pointer-events-none fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-3 z-40 md:bottom-8 md:left-8">
+    <div className="pointer-events-none fixed right-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-40 flex flex-col items-end md:right-8 md:bottom-8">
       {open && (
         <div className="pointer-events-auto mb-3 w-[min(360px,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
@@ -158,7 +158,7 @@ export function ChatWidget() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="pointer-events-auto grid h-12 w-12 place-items-center rounded-full bg-brand text-white shadow-[0_10px_30px_rgba(255,12,64,0.35)]"
+        className="pointer-events-auto grid h-12 w-12 place-items-center rounded-full bg-brand text-white"
         aria-label={open ? "Cerrar chat" : "Abrir chat"}
       >
         {open ? <X size={18} /> : <MessageCircle size={18} />}

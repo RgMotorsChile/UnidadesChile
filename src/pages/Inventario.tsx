@@ -219,7 +219,7 @@ export function Inventario() {
       </div>
 
       {compare.ids.length > 0 && (
-        <div className="fixed inset-x-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-40 mx-auto flex max-w-xl items-center justify-between gap-3 rounded-full border border-white/10 bg-black/90 px-4 py-2.5 backdrop-blur md:bottom-8">
+        <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] left-3 right-20 z-40 mx-auto flex max-w-xl items-center justify-between gap-3 rounded-full border border-white/10 bg-black/90 px-4 py-2.5 backdrop-blur md:inset-x-0 md:bottom-8">
           <p className="text-[12px] text-white/70">{compare.ids.length} de 3 en el comparador</p>
           <div className="flex gap-2">
             <button type="button" onClick={compare.clear} className="text-[11px] text-white/40">
@@ -234,7 +234,7 @@ export function Inventario() {
 
       {pedido && <LeadModals kind="pedido" onClose={() => setPedido(false)} />}
 
-      <Emblem className="fixed bottom-[5.75rem] right-3 z-40 hidden h-10 w-10 sm:block md:bottom-8 md:right-8 md:h-12 md:w-12" />
+      <Emblem className="fixed bottom-[5.75rem] left-3 z-40 hidden h-10 w-10 sm:block md:bottom-8 md:left-8 md:h-12 md:w-12" />
     </div>
   );
 }

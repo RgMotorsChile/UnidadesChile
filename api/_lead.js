@@ -80,7 +80,7 @@ export const UC_BRAND = {
   logoWidth: 240,
   logoHeight: 45,
   headerBg: "#0a0a0a",
-  accent: "#ff0c40",
+  accent: "#c8103a",
   accentText: "#ffffff",
   ink: "#111827",
   whatsapp: "56973236636",
