@@ -15,13 +15,6 @@ export function ContentPage() {
           homeHeadline1: String(data.get("h1") ?? settings.homeHeadline1),
           homeHeadline2: String(data.get("h2") ?? settings.homeHeadline2),
           homeSub: String(data.get("sub") ?? settings.homeSub),
-          address: String(data.get("address") ?? settings.address),
-          mapQuery: String(data.get("map") ?? settings.mapQuery),
-          hours: String(data.get("hours") ?? settings.hours),
-          whatsapp: String(data.get("wa") ?? settings.whatsapp),
-          phoneDisplay: String(data.get("phone") ?? settings.phoneDisplay),
-          email: String(data.get("email") ?? settings.email),
-          city: String(data.get("city") ?? settings.city),
         });
         alert("Contenido del sitio guardado.");
       }}
@@ -37,27 +30,21 @@ export function ContentPage() {
         <AdminField label="Bajada">
           <textarea name="sub" className="field min-h-[80px]" defaultValue={settings.homeSub} />
         </AdminField>
-        <AdminField label="Dirección">
-          <input name="address" className="field" defaultValue={settings.address} />
-        </AdminField>
-        <AdminField label="Consulta del mapa">
-          <input name="map" className="field" defaultValue={settings.mapQuery} />
-        </AdminField>
-        <AdminField label="Horario">
-          <input name="hours" className="field" defaultValue={settings.hours} />
-        </AdminField>
-        <AdminField label="WhatsApp (solo números, ej: 56912345678)">
-          <input name="wa" className="field" defaultValue={settings.whatsapp} />
-        </AdminField>
-        <AdminField label="Teléfono visible">
-          <input name="phone" className="field" defaultValue={settings.phoneDisplay} />
-        </AdminField>
-        <AdminField label="Email">
-          <input name="email" className="field" defaultValue={settings.email} />
-        </AdminField>
-        <AdminField label="Ciudad">
-          <input name="city" className="field" defaultValue={settings.city} />
-        </AdminField>
+        <div className="rounded-2xl border border-white/10 bg-[#121212] p-4 text-sm text-white/70">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/40">
+            Contacto del sitio
+          </p>
+          <p className="mt-3">{settings.address}</p>
+          <p>{settings.city}</p>
+          <p>{settings.hours}</p>
+          <p>{settings.phoneDisplay}</p>
+          <p>{settings.email}</p>
+          <p className="mt-3 text-[12px] text-white/40">
+            Dirección, teléfono, horario, WhatsApp y correo salen de una sola configuración.
+            El correo administracion@rgmotors.cl queda pendiente de confirmación de Mathias.
+            El WhatsApp de esta sucursal no se unifica con los otros sitios.
+          </p>
+        </div>
       </div>
       <button type="submit" className="mt-6 rounded-full bg-brand px-6 py-2.5 text-sm font-semibold">
         Guardar contenido

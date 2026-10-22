@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Clock3, Mail, MapPin, Navigation, Phone } from "lucide-react";
 import { PageTitle } from "../components/PageTitle";
 import { WhatsAppIcon } from "../components/Header";
-import { waLink } from "../lib/config";
+import { SITE, waLink } from "../lib/config";
 import { newLead } from "../lib/leads";
 import { postForm } from "../lib/consignaSubmit";
 import { useData } from "../store/DataProvider";
@@ -24,7 +24,7 @@ export function Contacto() {
     <div className="mx-auto max-w-[1280px] px-4 pb-28 pt-8 sm:px-6 md:px-8">
       <PageTitle
         title="Contacto | Unidades Chile"
-        description="Visítanos en Regimiento 1207, Puerto Montt, o escríbenos por WhatsApp."
+        description={`Visítanos en ${SITE.address}, o escríbenos por WhatsApp.`}
       />
       <p className="eyebrow">Sucursal</p>
       <h1 className="mt-3 text-[28px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[48px]">

@@ -7,18 +7,9 @@ export function PhotosPending({ className = "" }: { className?: string }) {
     <div
       className={`grid place-items-center bg-[#111] px-3 text-center ${className}`}
       role="img"
-      aria-label="Estamos trabajando en las fotos"
+      aria-label="Unidades Chile"
     >
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">
-          Unidades Chile
-        </p>
-        <p className="mt-1.5 text-[13px] font-semibold leading-snug text-white">
-          Estamos trabajando
-          <br />
-          en las fotos
-        </p>
-      </div>
+      <p className="text-[11px] font-semibold tracking-[0.18em] text-white/55">UNIDADES CHILE</p>
     </div>
   );
 }

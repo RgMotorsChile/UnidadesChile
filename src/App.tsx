@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -6,16 +7,21 @@ import { ChatWidget } from "./components/ChatWidget";
 import { CookieBanner } from "./components/CookieBanner";
 import { Home } from "./pages/Home";
 import { Inventario } from "./pages/Inventario";
-import { Auto } from "./pages/Auto";
-import { Vende } from "./pages/Vende";
-import { Financia } from "./pages/Financia";
-import { Nosotros } from "./pages/Nosotros";
-import { Novedades } from "./pages/Novedades";
-import { Novedad } from "./pages/Novedad";
-import { Comparador } from "./pages/Comparador";
-import { Contacto } from "./pages/Contacto";
-import { AvisoCredito, CondicionesReserva, Cookies, Privacidad, Terminos } from "./pages/Legal";
-import { AdminApp } from "./admin/AdminApp";
+
+const Auto = lazy(() => import("./pages/Auto").then((m) => ({ default: m.Auto })));
+const Vende = lazy(() => import("./pages/Vende").then((m) => ({ default: m.Vende })));
+const Financia = lazy(() => import("./pages/Financia").then((m) => ({ default: m.Financia })));
+const Nosotros = lazy(() => import("./pages/Nosotros").then((m) => ({ default: m.Nosotros })));
+const Novedades = lazy(() => import("./pages/Novedades").then((m) => ({ default: m.Novedades })));
+const Novedad = lazy(() => import("./pages/Novedad").then((m) => ({ default: m.Novedad })));
+const Comparador = lazy(() => import("./pages/Comparador").then((m) => ({ default: m.Comparador })));
+const Contacto = lazy(() => import("./pages/Contacto").then((m) => ({ default: m.Contacto })));
+const Privacidad = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Privacidad })));
+const Terminos = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Terminos })));
+const Cookies = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Cookies })));
+const AvisoCredito = lazy(() => import("./pages/Legal").then((m) => ({ default: m.AvisoCredito })));
+const CondicionesReserva = lazy(() => import("./pages/Legal").then((m) => ({ default: m.CondicionesReserva })));
+const AdminApp = lazy(() => import("./admin/AdminApp").then((m) => ({ default: m.AdminApp })));
 
 function LegacyAuto() {
   const { id } = useParams();
@@ -25,13 +31,18 @@ function LegacyAuto() {
 export function App() {
   const { pathname } = useLocation();
   if (pathname.startsWith("/admin")) {
-    return <AdminApp />;
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <AdminApp />
+      </Suspense>
+    );
   }
 
   return (
     <div className="min-h-screen min-w-0 overflow-x-clip bg-black">
       <Header />
       <main>
+        <Suspense fallback={<div className="min-h-[70vh]" aria-hidden />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/catalogo" element={<Inventario />} />
@@ -53,6 +64,7 @@ export function App() {
           <Route path="/condiciones-reserva" element={<CondicionesReserva />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </main>
       <Footer />
       <MobileNav />

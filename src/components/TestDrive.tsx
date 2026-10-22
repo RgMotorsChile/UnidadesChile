@@ -60,9 +60,9 @@ export function TestDrive({ car }: { car: Car }) {
     <div className="rounded-2xl border border-white/10 bg-[#141414] p-5">
       <p className="eyebrow">Showroom Puerto Montt</p>
       <h2 className="mt-2 text-xl font-semibold">Agendar prueba de manejo</h2>
-      <p className="mt-1 text-xs capitalize text-white/40">{cal.monthName}</p>
+      <p className="mt-1 text-xs capitalize text-white/70">{cal.monthName}</p>
 
-      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[11px] text-white/35">
+      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[11px] text-white/70">
         {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
           <span key={`${d}-${i}`}>{d}</span>
         ))}

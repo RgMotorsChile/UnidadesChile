@@ -1,5 +1,5 @@
 import { cars } from "../data/cars";
-import { PLACEHOLDER_EMAIL, SITE } from "../lib/config";
+import { SITE } from "../lib/config";
 import { isUnidadesChileStock } from "../lib/sources";
 import { idbClear, idbDelete, idbGet, idbGetAll, idbPut } from "./idb";
 import type { AdminUser, Lead, MediaAsset, Publication, SiteSettings, Vehicle } from "./types";
@@ -10,6 +10,7 @@ const SEEDED = "uc-seed-v1";
 const LOCATION_MIGRATE = "uc-location-pm-v2";
 const L200_MIGRATE = "uc-hero-l200-v1";
 const STOCK_MIGRATE = "uc-stock-unidades-chile-v3";
+const CONTACT_SOURCE = "uc-contact-source-v1";
 
 export function nowIso() {
   return new Date().toISOString();
@@ -35,6 +36,7 @@ export async function seedIfNeeded() {
       await migrateLocation();
       await migrateHeroL200();
       await migrateStock();
+      await migrateContactSource();
       return;
     }
   }
@@ -62,6 +64,7 @@ export async function seedIfNeeded() {
   await migrateLocation();
   await migrateHeroL200();
   await migrateStock();
+  await migrateContactSource();
 }
 
 async function migrateLocation() {
@@ -151,14 +154,32 @@ export const mediaRepo = {
   },
 };
 
+/** Dirección, teléfono, horario, WhatsApp y correo salen solo de SITE. */
+export function withDealerContact<T extends SiteSettings>(settings: T): T {
+  return {
+    ...settings,
+    whatsapp: SITE.whatsapp,
+    phoneDisplay: SITE.phoneDisplay,
+    email: SITE.email,
+    city: SITE.city,
+    address: SITE.address,
+    hours: SITE.hours,
+    mapQuery: SITE.mapQuery,
+  };
+}
+
+async function migrateContactSource() {
+  if (localStorage.getItem(CONTACT_SOURCE)) return;
+  const current = await getSettings();
+  await saveSettings(withDealerContact(current));
+  localStorage.setItem(CONTACT_SOURCE, "1");
+}
+
 export async function getSettings(): Promise<SiteSettings> {
   const row = await idbGet<SiteSettings & { id: string }>("settings", SETTINGS_ID);
   if (row) {
     const { id: _id, ...rest } = row;
-    if (rest.email === PLACEHOLDER_EMAIL || !rest.email) {
-      return { ...rest, email: SITE.email };
-    }
-    return rest;
+    return withDealerContact(rest as SiteSettings);
   }
   return {
     ...SITE,
@@ -169,7 +190,7 @@ export async function getSettings(): Promise<SiteSettings> {
 }
 
 export async function saveSettings(s: SiteSettings) {
-  await idbPut("settings", { id: SETTINGS_ID, ...s });
+  await idbPut("settings", { id: SETTINGS_ID, ...withDealerContact(s) });
 }
 
 export type AdminRecord =
