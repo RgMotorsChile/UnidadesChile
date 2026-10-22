@@ -54,7 +54,7 @@ test("la URL vieja redirige 301 y el vendido sale del sitemap", () => {
   assert.match(xml, /<lastmod>/);
 });
 
-test("otra sucursal: 301 si hay ficha y 410 si no", () => {
+test("301 cruzado solo si la patente está en una sola planilla ajena", () => {
   const shyl = resolveVehicle(OTHER_BRANCH.SHYL53.legacySlug, catalog);
   assert.equal(shyl.status, 301);
   assert.equal(shyl.to, "https://www.rgmotorschile.cl/vehiculo/ford-ranger-4x4-rojo-2023-7cm3a8");
@@ -62,12 +62,43 @@ test("otra sucursal: 301 si hay ficha y 410 si no", () => {
   const stpz = resolveVehicle(OTHER_BRANCH.STPZ87.legacySlug, catalog);
   assert.equal(stpz.status, 301);
   assert.equal(stpz.to, "https://www.rgmotorschile.cl/vehiculo/maxus-t60-4x2-at-gris-2023-n57nph");
-  const rygb = resolveVehicle(OTHER_BRANCH.RYGB56.legacySlug, catalog);
-  assert.equal(rygb.type, "gone");
-  for (const plate of ["GHTD24", "HLXB59", "RZKV76"]) {
+  const lfst = resolveVehicle(OTHER_BRANCH.LFST41.legacySlug, catalog);
+  assert.equal(lfst.status, 301);
+  assert.equal(lfst.to, "https://www.rgmotorschile.cl/vehiculo/mitsubishi-l200-katana-cr-4x2-rojo-2019-36h57g");
+  assert.equal(OTHER_BRANCH.RYGB56, undefined);
+  const rygb = resolveVehicle("mg-3-hatch-back-2022-rygb56", catalog);
+  assert.equal(rygb.type, "missing");
+  const shared = {
+    id: "hyundai-tucson-gl-2-0-2014-ghtd24",
+    unidad: "GHTD 24",
+    marca: "Hyundai",
+    modelo: "Tucson",
+    version: "Tucson",
+    year: 2014,
+    precio: 1,
+    km: 1,
+    imagenes: [],
+    status: "publicado",
+    sucursal: "rg-motors",
+    publicSlug: "hyundai-tucson-gl-2-0-blanco-2014-u7skaq",
+    external: "https://www.rgmotorschile.cl/vehiculo/hyundai-tucson-gl-2-0-2014-ghtd24",
+  };
+  assert.equal(resolveVehicle(shared.id, [shared]).type, "missing");
+  assert.equal(resolveVehicle(shared.publicSlug, [shared]).type, "missing");
+  const kept = {
+    ...shared,
+    id: "mitsubishi-l200-katana-crt-4x4-2019-lpcg80",
+    unidad: "LPCG 80",
+    sucursal: "unidades-chile",
+    publicSlug: "mitsubishi-l200-katana-crt-4x4-2019-pq8ymm",
+    external: null,
+  };
+  assert.equal(resolveVehicle(kept.publicSlug, [kept]).type, "ok");
+  for (const plate of ["GHTD24", "HLXB59", "RZKV76", "RYGB56", "JRTH26", "LWRS59"]) {
     assert.equal(OTHER_BRANCH[plate], undefined);
-    assert.equal(resolveVehicle(plate, catalog).type, "missing");
   }
+  const xml = sitemapXml(origin, catalog);
+  assert.equal(xml.includes("rygb56"), false);
   const decision = decide(new URL(`${origin}/catalogo`), catalog);
   assert.equal(decision.seo.canonical, `${origin}/catalogo`);
   const home = decide(new URL(`${origin}/`), catalog);

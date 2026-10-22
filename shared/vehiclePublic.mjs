@@ -42,17 +42,97 @@ export const BRANCHES = {
 };
 
 /**
- * Autos del seed que no se publican en este dominio.
- * Mathias confirmó SHYL53 en RG. El destino es el slug sin patente de
- * RgMotorsChileWeb PR #34 (rama cursor/auditoria-ficha-seo-sucursal-4f56).
- * STPZ87 solo figura como CARDONAL en la hoja de RG y esa misma PR ya publica
- * el slug sin patente: no hay choque entre fuentes.
- * RYGB56 figura como SALGADO en la hoja de RG y en el bloque de Salgado, sin
- * URL de ficha confirmada: 410.
- * GHTD24, HLXB59 y RZKV76 siguen en conflicto. No entran aquí: ni 301, ni 410,
- * ni se sacan del sitemap.
+ * 301 cruzado. Solo patentes que están en una única planilla ajena y ya no
+ * están en la de Unidades Chile. El destino es el slug sin patente que publica
+ * RgMotorsChileWeb PR #34, salvo RGBP23: esa PR deja la URL con patente.
+ * SHYL53 también está en la planilla de Salgado. Mathias confirmó igual el 301 a RG.
  */
 export const OTHER_BRANCH = {
+  DDLJ95: {
+    branch: "rg-motors",
+    legacySlug: "mercedes-benz-ml300-cdi-2011-ddlj95",
+    external: "https://www.rgmotorschile.cl/vehiculo/mercedes-benz-ml300-cdi-blanco-2011-55923g",
+  },
+  LFST41: {
+    branch: "rg-motors",
+    legacySlug: "mitsubishi-l200-katana-cr-4x2-2019-lfst41",
+    external: "https://www.rgmotorschile.cl/vehiculo/mitsubishi-l200-katana-cr-4x2-rojo-2019-36h57g",
+  },
+  LRJY32: {
+    branch: "rg-motors",
+    legacySlug: "ford-raptor-f150-2020-lrjy32",
+    external: "https://www.rgmotorschile.cl/vehiculo/ford-raptor-f150-rojo-2020-qe7hau",
+  },
+  PRKK70: {
+    branch: "rg-motors",
+    legacySlug: "ford-ranger-xlt-4x4-3-2-2021-prkk70",
+    external: "https://www.rgmotorschile.cl/vehiculo/ford-ranger-xlt-4x4-3-2-gris-2021-tfue4e",
+  },
+  PSKJ78: {
+    branch: "rg-motors",
+    legacySlug: "toyota-hilux-dx-4x4-2021-pskj78",
+    external: "https://www.rgmotorschile.cl/vehiculo/toyota-hilux-dx-4x4-2-4-rojo-2021-nzqquf",
+  },
+  RGBP23: {
+    branch: "rg-motors",
+    legacySlug: "ram-700-2022-rgbp23",
+    external: "https://www.rgmotorschile.cl/vehiculo/ram-700-2022-rgbp23",
+  },
+  RGGZ96: {
+    branch: "rg-motors",
+    legacySlug: "mitsubishi-katana-work-4x2-2022-rggz96",
+    external: "https://www.rgmotorschile.cl/vehiculo/mitsubishi-katana-work-4x2-blanco-2022-bqkcw5",
+  },
+  RPSH34: {
+    branch: "rg-motors",
+    legacySlug: "hyundai-porter-2022-rpsh34",
+    external: "https://www.rgmotorschile.cl/vehiculo/hyundai-porter-blanco-2022-nncgw2",
+  },
+  RPSH75: {
+    branch: "rg-motors",
+    legacySlug: "hyundai-porter-2022-rpsh75",
+    external: "https://www.rgmotorschile.cl/vehiculo/hyundai-porter-blanco-2022-wpafnp",
+  },
+  RPSV20: {
+    branch: "rg-motors",
+    legacySlug: "hyundai-porter-2022-rpsv20",
+    external: "https://www.rgmotorschile.cl/vehiculo/hyundai-porter-blanco-2022-6jqyxz",
+  },
+  RRKB78: {
+    branch: "rg-motors",
+    legacySlug: "volkswagen-amarok-4x4-mt-2022-rrkb78",
+    external: "https://www.rgmotorschile.cl/vehiculo/volkswagen-amarok-4x4-mt-blanco-2022-xc4y2h",
+  },
+  RZTG13: {
+    branch: "rg-motors",
+    legacySlug: "jac-x200-2022-rztg13",
+    external: "https://www.rgmotorschile.cl/vehiculo/jac-x200-blanco-2022-9g9uhu",
+  },
+  RZWV49: {
+    branch: "rg-motors",
+    legacySlug: "jac-x200-2022-rzwv49",
+    external: "https://www.rgmotorschile.cl/vehiculo/jac-x200-blanco-2022-xmfdgd",
+  },
+  SBZG55: {
+    branch: "rg-motors",
+    legacySlug: "mazda-bt-50-4x4-2022-sbzg55",
+    external: "https://www.rgmotorschile.cl/vehiculo/mazda-bt-50-4x4-blanco-2022-hppc2g",
+  },
+  SCDW37: {
+    branch: "rg-motors",
+    legacySlug: "peugeot-expert-2022-scdw37",
+    external: "https://www.rgmotorschile.cl/vehiculo/peugeot-expert-blanco-2022-vjsvpm",
+  },
+  SDJT43: {
+    branch: "rg-motors",
+    legacySlug: "chevrolet-colorado-4x4-aut-2022-sdjt43",
+    external: "https://www.rgmotorschile.cl/vehiculo/chevrolet-colorado-4x4-aut-blanco-2022-wnz3j6",
+  },
+  SFYB29: {
+    branch: "rg-motors",
+    legacySlug: "chevrolet-colorado-4x4-aut-2022-sfyb29",
+    external: "https://www.rgmotorschile.cl/vehiculo/chevrolet-colorado-4x4-aut-blanco-2022-52c4sd",
+  },
   SHYL53: {
     branch: "rg-motors",
     legacySlug: "ford-ranger-4x4-2023-shyl53",
@@ -63,12 +143,36 @@ export const OTHER_BRANCH = {
     legacySlug: "maxus-t60-4x2-at-2023-stpz87",
     external: "https://www.rgmotorschile.cl/vehiculo/maxus-t60-4x2-at-gris-2023-n57nph",
   },
-  RYGB56: {
-    branch: "salgado",
-    legacySlug: "mg-3-hatch-back-2022-rygb56",
-    external: null,
+  SVFB26: {
+    branch: "rg-motors",
+    legacySlug: "peugeot-partner-1-5-2023-svfb26",
+    external: "https://www.rgmotorschile.cl/vehiculo/peugeot-partner-1-5-blanco-2023-stexz6",
+  },
+  SVFD42: {
+    branch: "rg-motors",
+    legacySlug: "peugeot-partner-2023-svfd42",
+    external: "https://www.rgmotorschile.cl/vehiculo/peugeot-partner-blanco-2023-a4bzqg",
   },
 };
+
+/**
+ * Patentes en más de una planilla. Se publican en cada sitio que las tiene,
+ * con canonical propio. Este dominio no responde 301 ni 410.
+ * SHYL53 no entra: Mathias confirmó el 301 a RG.
+ * RYGB56 está en RG y Salgado, no en UC, y no hay una sola ficha de destino.
+ */
+export const MULTI_SITE_PLATES = new Set([
+  "GHTD24",
+  "HLXB59",
+  "JRTH26",
+  "LWRS59",
+  "RRYJ47",
+  "RYGB56",
+  "SBJR89",
+  "SKLF13",
+  "TRBX87",
+  "TSGL82",
+]);
 
 const ID_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
 
@@ -161,7 +265,7 @@ export function catalogPath(car) {
 
 export function isListedHere(car) {
   const plate = plateKey(car?.unidad || car?.plate);
-  if (OTHER_BRANCH[plate]) return false;
+  if (OTHER_BRANCH[plate] || MULTI_SITE_PLATES.has(plate)) return false;
   const branch = car?.sucursal || car?.branch;
   if (branch && branch !== "unidades-chile") return false;
   return true;
@@ -306,14 +410,22 @@ export function normalizeRecord(raw, branch) {
   return car;
 }
 
+function staysOnEverySheet(plate) {
+  return Boolean(plate) && !OTHER_BRANCH[plate] && MULTI_SITE_PLATES.has(plate);
+}
+
 export function resolveVehicle(param, catalog) {
   const key = decodeURIComponent(String(param || "")).trim();
   if (!key) return { type: "missing" };
   const rows = catalog || [];
+  const tail = plateKey(key.split("-").pop());
+  if (staysOnEverySheet(tail)) return { type: "missing" };
+
   const here = rows.find(
     (car) => car.sucursal === "unidades-chile" && (car.publicSlug === key || car.id === key),
   );
   if (here) {
+    if (staysOnEverySheet(plateKey(here.unidad))) return { type: "missing" };
     if (here.status === "vendido") {
       return { type: "redirect", status: 301, to: "/catalogo?estado=vendido" };
     }
@@ -329,6 +441,7 @@ export function resolveVehicle(param, catalog) {
   const elsewhere = rows.find(
     (car) => car.sucursal !== "unidades-chile" && (car.id === key || car.publicSlug === key),
   );
+  if (elsewhere && staysOnEverySheet(plateKey(elsewhere.unidad))) return { type: "missing" };
   const forced = Object.values(OTHER_BRANCH).find((row) => row.legacySlug === key);
   const target = elsewhere || null;
   if (target || forced) {
@@ -494,7 +607,7 @@ export function sitemapXml(origin, catalog) {
   for (const car of catalog || []) {
     if (car.sucursal !== "unidades-chile") continue;
     if (car.status !== "publicado" && car.status !== "reservado") continue;
-    if (!isListedHere(car) && OTHER_BRANCH[plateKey(car.unidad)]) continue;
+    if (!isListedHere(car)) continue;
     urls.push({
       loc: `${origin}/catalogo/${car.publicSlug}`,
       lastmod: car.updatedAt || new Date().toISOString(),

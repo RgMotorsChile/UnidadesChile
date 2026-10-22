@@ -70,7 +70,7 @@ test("ficha, OG y schema", async ({ page, request }) => {
   expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
 });
 
-test("301 de patente y 410 sin ficha en la otra sucursal", async ({ request }) => {
+test("301 cruzado y ficha compartida sin 410", async ({ request }) => {
   const moved = await request.get("/catalogo/ford-ranger-4x4-2023-shyl53", { maxRedirects: 0 });
   expect(moved.status()).toBe(301);
   expect(moved.headers().location).toBe(
@@ -81,8 +81,9 @@ test("301 de patente y 410 sin ficha en la otra sucursal", async ({ request }) =
   expect(maxus.headers().location).toBe(
     "https://www.rgmotorschile.cl/vehiculo/maxus-t60-4x2-at-gris-2023-n57nph",
   );
-  const missing = await request.get("/catalogo/mg-3-hatch-back-2022-rygb56", { maxRedirects: 0 });
-  expect(missing.status()).toBe(410);
+  const shared = await request.get("/catalogo/mg-3-hatch-back-2022-rygb56", { maxRedirects: 0 });
+  expect(shared.status()).toBe(200);
+  expect(await shared.text()).toContain("Unidad no encontrada");
   const xml = await request.get("/sitemap.xml");
   expect(xml.ok()).toBeTruthy();
   const text = await xml.text();
