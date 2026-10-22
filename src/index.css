@@ -103,7 +103,13 @@ button.bg-brand:focus-visible {
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  color: #c8103a;
+}
+
+/* El relleno #c8103a no alcanza 4.5:1 como texto sobre negro. Las etiquetas usan un rojo más claro. */
+.text-brand,
+.eyebrow,
+.hover\:text-brand:hover {
+  color: #ff2d55;
 }
 
 img,
