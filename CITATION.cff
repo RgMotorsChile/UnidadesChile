@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: >-
+  Si usas este software, cita los metadatos de este archivo.
+  Identifica al autor del proyecto. No es un certificado legal.
+title: Unidades Chile Automotriz
+abstract: >-
+  Sitio de Unidades Chile Automotriz. Catálogo, ficha, financiamiento
+  y administración.
+type: software
+version: 1.0.0
+license: LicenseRef-Proprietary
+repository-code: https://github.com/RgMotorsChile/UnidadesChile
+url: https://www.unidadeschile.cl/
+commit: 3d8c0fdf178340581e721ecc54792d0c20a37bb1
+authors:
+  - family-names: Jara
+    given-names: Mathias
+    alias: MathiasAlejandr0
+    email: mathias.jara@hotmail.com
