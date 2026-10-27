@@ -1,0 +1,16 @@
+# Hashes del commit de main fijado para la constancia de autoría.
+# El tar.gz no está en el repositorio.
+commit=3d8c0fdf178340581e721ecc54792d0c20a37bb1
+branch=main
+git_version=2.43.0
+archive_command=git archive --format=tar.gz 3d8c0fdf178340581e721ecc54792d0c20a37bb1
+archive_name=unidadeschile-3d8c0fdf178340581e721ecc54792d0c20a37bb1.tar.gz
+archive_bytes=68272318
+archive_sha256=be5a24953d48dafd1aa090e69cb8bf1ea68110f922fabdc29f774085ee8b8de0
+source_file=src/App.tsx
+source_file_sha256=78b7e72a3db3f8c37e17032347dc755227e5dd63b1754719b872b88edbcc93e2
+source_file_git_blob=7d044522242f92cf6d20e4d2daa3d7f283d15cb1
+ots_file=docs/autoria/unidadeschile-3d8c0fdf178340581e721ecc54792d0c20a37bb1.tar.gz.ots
+ots_client=opentimestamps-client 0.7.2
+ots_status=pending-bitcoin-confirmation
+generated=2026-10-27
