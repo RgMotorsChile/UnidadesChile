@@ -139,6 +139,14 @@ export function Home() {
               Stock disponible
             </h2>
           </div>
+          {ready && published.length === 0 && (
+            <div className="mt-8 rounded-2xl border border-white/10 bg-[#141414] px-6 py-12 text-center">
+              <p className="text-lg font-semibold text-white">Estamos renovando nuestro stock</p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-white/60">
+                Pronto publicaremos nuevas unidades. Escríbenos y te avisamos apenas tengamos el auto que buscas.
+              </p>
+            </div>
+          )}
           <div className="mt-8 grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
             {rail.map((car, index) => (
               <CarCard key={car.id} car={car} layout="featured" priority={index === 0} />

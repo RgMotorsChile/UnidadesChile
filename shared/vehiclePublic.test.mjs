@@ -6,6 +6,7 @@ import { urlFromHtmlFunction } from "./htmlRequest.mjs";
 import { catalogFromLocal } from "./catalog.mjs";
 import {
   carJson,
+  isCatalogHidden,
   isListedHere,
   pageSeo,
   plateKey,
@@ -16,6 +17,10 @@ import {
   vehicleDescription,
   vehicleTitle,
 } from "./vehiclePublic.mjs";
+
+// Las pruebas de fichas/sitemap corren con el catálogo visible; el modo
+// oculto (valor por defecto en producción) se prueba aparte al final.
+process.env.VITE_CATALOG_HIDDEN = "false";
 
 const local = JSON.parse(readFileSync(new URL("./local-catalog.json", import.meta.url), "utf8"));
 const catalog = catalogFromLocal(local);
@@ -148,4 +153,23 @@ test("la función HTML recupera la ruta pública que reescribió Vercel", () => 
 
   const home = urlFromHtmlFunction("/api/html", "www.unidadeschile.cl");
   assert.equal(home.pathname, "/");
+});
+
+test("catálogo oculto por defecto: sin autos listados, fichas 410 y sitemap sin autos", () => {
+  const prev = process.env.VITE_CATALOG_HIDDEN;
+  try {
+    delete process.env.VITE_CATALOG_HIDDEN;
+    assert.equal(isCatalogHidden(), true);
+    const car = catalog.find((c) => c.status === "publicado") || catalog[0];
+    assert.equal(isListedHere(car), false);
+    assert.equal(resolveVehicle(car.publicSlug, catalog).type, "gone");
+    const xml = sitemapXml(origin, catalog);
+    assert.equal(xml.includes("/catalogo/"), false);
+    assert.equal(decide(new URL(`${origin}/catalogo/${car.publicSlug}`), catalog).type, "gone");
+    process.env.VITE_CATALOG_HIDDEN = "false";
+    assert.equal(isCatalogHidden(), false);
+  } finally {
+    if (prev === undefined) delete process.env.VITE_CATALOG_HIDDEN;
+    else process.env.VITE_CATALOG_HIDDEN = prev;
+  }
 });

@@ -114,7 +114,23 @@ export function catalogPath(car) {
  * sitio. Sin planilla (falló la lectura) se mantiene el stock de Unidades
  * Chile y no se vacía la vitrina.
  */
+/**
+ * Catálogo público oculto (vitrina vacía). Por defecto TRUE: no se lista ni
+ * se abre ninguna ficha, y el sitemap queda sin autos. Los datos siguen en
+ * Supabase y el admin no cambia. Para volver a mostrar el stock, definir
+ * VITE_CATALOG_HIDDEN=false en Vercel (vale para el navegador y la API) y
+ * redeployar, o cambiar el valor por defecto aquí.
+ */
+export function isCatalogHidden() {
+  let raw;
+  if (typeof process !== "undefined" && process.env) raw = process.env.VITE_CATALOG_HIDDEN;
+  if (raw == null && import.meta.env) raw = import.meta.env.VITE_CATALOG_HIDDEN;
+  if (raw == null || String(raw).trim() === "") return true;
+  return !/^(0|false|no|off)$/i.test(String(raw).trim());
+}
+
 export function isListedHere(car, sheetPlates = null) {
+  if (isCatalogHidden()) return false;
   const plate = plateKey(car?.unidad || car?.plate);
   if (sheetPlates instanceof Set) return Boolean(plate) && sheetPlates.has(plate);
   const branch = car?.sucursal || car?.branch;

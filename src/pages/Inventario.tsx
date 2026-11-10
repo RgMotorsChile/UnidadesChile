@@ -194,6 +194,7 @@ export function Inventario() {
                 </div>
               ))
             : visible.map((car, index) => <CarCard key={car.id} car={car} priority={index === 0} />)}
+          {ready && cars.length === 0 && <EmptyCatalog />}
         </div>
       </div>
       {ready && shown < list.length && (
@@ -286,6 +287,17 @@ function Side({
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+function EmptyCatalog() {
+  return (
+    <div className="col-span-full rounded-2xl border border-white/10 bg-[#141414] px-6 py-14 text-center">
+      <p className="text-lg font-semibold text-white">Estamos renovando nuestro stock</p>
+      <p className="mx-auto mt-2 max-w-md text-sm text-white/60">
+        Pronto publicaremos nuevas unidades. Escríbenos y te avisamos apenas tengamos el auto que buscas.
+      </p>
     </div>
   );
 }
