@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { handleImage, handleOg } from "./server/images.mjs";
 import { decide, getCatalog, getSheetPlates, goneDocument, renderHtml } from "./server/seoGate.mjs";
+import { isCatalogHidden } from "./shared/vehiclePublic.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -21,6 +22,7 @@ function requestUrl(req) {
 }
 
 async function publication() {
+  if (isCatalogHidden()) return { catalog: [], sheetPlates: null };
   const [catalog, sheetPlates] = await Promise.all([getCatalog(), getSheetPlates()]);
   return { catalog, sheetPlates };
 }

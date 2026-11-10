@@ -27,6 +27,7 @@ declare module "@shared/vehiclePublic.mjs" {
     modelo?: string;
     year?: number;
   }): string;
+  export function isCatalogHidden(): boolean;
   export function isListedHere(
     car: { unidad?: string; plate?: string; sucursal?: string },
     sheetPlates?: Set<string> | null,

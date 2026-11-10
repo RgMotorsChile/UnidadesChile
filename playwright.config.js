@@ -9,5 +9,8 @@ export default defineConfig({
     url: "http://127.0.0.1:4173/catalogo",
     reuseExistingServer: false,
     timeout: 180_000,
+    // Las pruebas de vitrina/fichas corren con el catálogo visible. En
+    // producción el valor por defecto es oculto (ver isCatalogHidden).
+    env: { VITE_CATALOG_HIDDEN: "false" },
   },
 });
