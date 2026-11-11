@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { readdirSync, statSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { apiRouteKey, resolveHandlerKey } from "./apiRoute.mjs";
 
 const HOBBY_LIMIT = 12;
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../api");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../api");
 
 function listFunctions(dir, rel = "") {
   const files = [];
@@ -44,4 +45,12 @@ test("las páginas del sitio caen en html y una API desconocida no", () => {
   assert.equal(resolveHandlerKey("/api/admin/photos?slug=toyota-hilux"), "admin/photos");
   assert.equal(resolveHandlerKey("/api/nope"), "");
   assert.equal(resolveHandlerKey("/api"), "");
+});
+
+test("ninguna carpeta bajo api/ compite con el catch-all", () => {
+  for (const name of readdirSync(root)) {
+    const full = path.join(root, name);
+    if (!statSync(full).isDirectory()) continue;
+    assert.ok(name.startsWith("_") || name.startsWith("."), `la carpeta api/${name} ocultaria /api/${name}/*`);
+  }
 });

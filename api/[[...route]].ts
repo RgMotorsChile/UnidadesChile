@@ -7,12 +7,12 @@ import img from "./_img.js";
 import ogImage from "./_og-image.js";
 import sheetPlates from "./_sheet-plates.js";
 import sitemap from "./_sitemap.js";
-import login from "./admin/_login.js";
-import logout from "./admin/_logout.js";
-import photos from "./admin/_photos.js";
-import sell from "./admin/_sell.js";
-import sync from "./admin/_sync.js";
-import vehicles from "./admin/_vehicles.js";
+import login from "./_admin/_login.js";
+import logout from "./_admin/_logout.js";
+import photos from "./_admin/_photos.js";
+import sell from "./_admin/_sell.js";
+import sync from "./_admin/_sync.js";
+import vehicles from "./_admin/_vehicles.js";
 
 /** Una sola función. El plan Hobby corta el deploy en la número 13. */
 export const config = {

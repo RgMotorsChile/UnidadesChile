@@ -52,7 +52,7 @@ Declarado en `package.json` (`private: true`):
 | `src/store` | Datos del catálogo, sesión de administración y almacenamiento local |
 | `src/data/cars.ts` | Datos de vehículos usados por el front |
 | `api/` | Función única de Vercel (`api/[[...route]].ts`, runtime `nodejs`) |
-| `api/admin/` | Login, logout, fotos, venta, sincronización, vehículos, medios y sesión |
+| `api/_admin/` | Login, logout, fotos, venta, sincronización, vehículos, medios y sesión |
 | `shared/` | Ruta de la función, catálogo, HTML, imágenes, patentes y presentación pública del vehículo |
 | `server/` | Imágenes y compuerta SEO del entorno local |
 | `scripts/` | Revisión de imágenes, compresión de stock, importación de la hoja de stock y exportación hacia Supabase |
@@ -124,7 +124,7 @@ Vercel define `VERCEL` y `VERCEL_URL`. Las fotos usan el bucket público `vehicl
 | `dev` | `vite` |
 | `build` | `tsc --noEmit && vite build` |
 | `preview` | `vite preview` |
-| `test` | `node --experimental-strip-types --test` sobre `api/admin/_media.test.js`, `api/admin/_sheetRemoval.test.js`, `shared/vehiclePublic.test.mjs` y `shared/vercelFunctions.test.mjs` |
+| `test` | `node --experimental-strip-types --test` sobre `api/_admin/_media.test.js`, `api/_admin/_sheetRemoval.test.js`, `shared/vehiclePublic.test.mjs` y `shared/vercelFunctions.test.mjs` |
 | `check:images` | `scripts/check-images.mjs`: compara `shared/local-catalog.json` con `src/data/cars.ts` y comprueba que las fotos locales existan |
 | `test:e2e` | `playwright test` |
 
@@ -160,6 +160,6 @@ Tablas que consulta este repositorio:
 - `catalog_vehicles`
 - `vehicle_photo_orphans`
 
-El login de administración (`api/admin/_login.ts`) usa Supabase Auth y la RPC `uc_admin_session_create`. `api/admin/_auth.js` describe la sesión de servidor para un admin del tenant en `tenant_members`.
+El login de administración (`api/_admin/_login.ts`) usa Supabase Auth y la RPC `uc_admin_session_create`. `api/_admin/_auth.js` describe la sesión de servidor para un admin del tenant en `tenant_members`.
 
 Las fotos de catálogo van al bucket público `vehicle-photos`. La migración documenta el path `<tenant_slug>/<vehicle_slug>/<sha256>.<ext>`, con prefijo `unidades-chile/`. `supabase/migrations/20261022120000_vehicle_photo_orphans.sql` crea `public.vehicle_photo_orphans` para los borrados de Storage que fallaron: activa RLS, revoca el acceso de `public`, `anon` y `authenticated`, y concede permisos a `service_role`. El comentario de esa migración deja el reintento de huérfanos en el job de RgMotorsChileWeb.
