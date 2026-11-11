@@ -18,8 +18,7 @@ import {
   vehicleTitle,
 } from "./vehiclePublic.mjs";
 
-// Las pruebas de fichas/sitemap corren con el catálogo visible; el modo
-// oculto (valor por defecto en producción) se prueba aparte al final.
+// El catálogo es visible por defecto. Se deja el env en false por claridad.
 process.env.VITE_CATALOG_HIDDEN = "false";
 
 const local = JSON.parse(readFileSync(new URL("./local-catalog.json", import.meta.url), "utf8"));
@@ -155,19 +154,19 @@ test("la función HTML recupera la ruta pública que reescribió Vercel", () => 
   assert.equal(home.pathname, "/");
 });
 
-test("catálogo oculto por defecto: sin autos listados, fichas 410 y sitemap sin autos", () => {
+test("catálogo visible por defecto: autos listados y sitemap con fichas, aunque VITE_CATALOG_HIDDEN quede en true", () => {
   const prev = process.env.VITE_CATALOG_HIDDEN;
   try {
     delete process.env.VITE_CATALOG_HIDDEN;
-    assert.equal(isCatalogHidden(), true);
-    const car = catalog.find((c) => c.status === "publicado") || catalog[0];
-    assert.equal(isListedHere(car), false);
-    assert.equal(resolveVehicle(car.publicSlug, catalog).type, "gone");
-    const xml = sitemapXml(origin, catalog);
-    assert.equal(xml.includes("/catalogo/"), false);
-    assert.equal(decide(new URL(`${origin}/catalogo/${car.publicSlug}`), catalog).type, "gone");
-    process.env.VITE_CATALOG_HIDDEN = "false";
     assert.equal(isCatalogHidden(), false);
+    const car = catalog.find((c) => c.status === "publicado") || catalog[0];
+    assert.equal(isListedHere(car), true);
+    assert.equal(resolveVehicle(car.publicSlug, catalog).type, "ok");
+    const xml = sitemapXml(origin, catalog);
+    assert.equal(xml.includes("/catalogo/"), true);
+    process.env.VITE_CATALOG_HIDDEN = "true";
+    assert.equal(isCatalogHidden(), false);
+    assert.equal(isListedHere(car), true);
   } finally {
     if (prev === undefined) delete process.env.VITE_CATALOG_HIDDEN;
     else process.env.VITE_CATALOG_HIDDEN = prev;
