@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { officialAdmin } from "../lib/adminCredentials";
 import { setMeta } from "../lib/documentMeta";
 import { getAdminRecord } from "../store/repo";
-import { hydrateAdminSession, hydrateServerSession, isAdminSession } from "../store/adminAuth";
+import { hydrateAdminSession, hydrateServerSession, isAdminSession, mustChangePassword } from "../store/adminAuth";
 import { AdminLayout } from "./AdminLayout";
 import { AdminLogin } from "./Login";
 import { AdminDashboard } from "./Dashboard";
@@ -24,6 +24,7 @@ import { CRM_VIEWS } from "./crmViews";
 
 function RequireAuth() {
   if (!isAdminSession()) return <Navigate to="/admin/login" replace />;
+  if (mustChangePassword()) return <Navigate to="/admin/login?change=1" replace />;
   return <AdminLayout />;
 }
 
@@ -40,15 +41,16 @@ export function AdminApp() {
     document.title = "Admin | Unidades Chile";
     void (async () => {
       const official = officialAdmin();
-      if (!official) {
-        await hydrateServerSession();
-        setReady(true);
-        return;
+      if (official) {
+        const rec = await getAdminRecord();
+        const hash =
+          official?.passwordHash ?? (rec && "passwordHash" in rec ? rec.passwordHash : null);
+        if (await hydrateAdminSession(hash)) {
+          setReady(true);
+          return;
+        }
       }
-      const rec = await getAdminRecord();
-      const hash =
-        official?.passwordHash ?? (rec && "passwordHash" in rec ? rec.passwordHash : null);
-      await hydrateAdminSession(hash);
+      await hydrateServerSession();
       setReady(true);
     })();
     return () => setMeta("robots", "index, follow");

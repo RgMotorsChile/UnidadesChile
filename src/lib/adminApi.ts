@@ -79,7 +79,17 @@ export async function adminLogin(user: string, password: string) {
     credentials: "include",
     body: JSON.stringify({ user, password }),
   });
-  await parse(res);
+  return (await parse(res)) as { ok?: boolean; user?: string; mustChange?: boolean; legacy?: boolean };
+}
+
+export async function adminChangePassword(user: string, currentPassword: string, newPassword: string) {
+  const res = await fetch("/api/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ action: "change", user, currentPassword, newPassword }),
+  });
+  return (await parse(res)) as { ok?: boolean; user?: string; mustChange?: boolean };
 }
 
 export async function adminLogout() {

@@ -1,33 +1,48 @@
 import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { officialAdmin } from "../lib/adminCredentials";
+import { matchesOfficialAdmin, shouldTryServerLogin } from "../lib/adminLoginFlow";
 import { Logo } from "../components/Logo";
 import { saveAdminUser } from "../store/repo";
-import { adminLogin } from "../lib/adminApi";
-import { hashPassword, isAdminSession, openAdminSession, openServerSession } from "../store/adminAuth";
+import { adminChangePassword, adminLogin } from "../lib/adminApi";
+import {
+  hashPassword,
+  isAdminSession,
+  mustChangePassword,
+  openAdminSession,
+  openServerSession,
+} from "../store/adminAuth";
 
 export function AdminLogin() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const official = officialAdmin();
-  const [mode, setMode] = useState<"login" | "setup" | "loading">("login");
+  const [mode, setMode] = useState<"login" | "setup" | "loading" | "change">("login");
   const [user, setUser] = useState(official?.user ?? "admin");
   const [password, setPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
 
   useEffect(() => {
     const creds = officialAdmin();
     if (creds) {
-      setMode("login");
-      setUser(creds.user);
-      return;
+      setUser((prev) => prev || creds.user);
+    } else {
+      setUser((prev) => prev);
     }
-    // Sin credencial oficial: el servidor valida la cuenta RG (Supabase Auth).
-    setMode("login");
-    setUser("");
-  }, []);
+    if (searchParams.get("change") === "1" || mustChangePassword()) {
+      setMode("change");
+      setInfo("Por seguridad debes cambiar la contraseña antes de entrar al panel.");
+      const saved = sessionStorage.getItem("uc-admin-user");
+      if (saved) setUser(saved);
+    }
+  }, [searchParams]);
 
-  if (isAdminSession()) return <Navigate to="/admin" replace />;
+  if (isAdminSession() && !mustChangePassword() && mode !== "change") {
+    return <Navigate to="/admin" replace />;
+  }
 
   return (
     <div className="grid min-h-dvh place-items-center bg-black px-4 py-10">
@@ -55,8 +70,28 @@ export function AdminLogin() {
             return;
           }
 
+          if (mode === "change") {
+            if (password !== confirm) {
+              setError("Las contraseñas nuevas no coinciden.");
+              return;
+            }
+            if (!currentPassword) {
+              setError("Ingresa tu contraseña temporal actual.");
+              return;
+            }
+            try {
+              await adminChangePassword(user.trim(), currentPassword, password);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "No se pudo cambiar la contraseña.");
+              return;
+            }
+            openServerSession(false);
+            navigate("/admin", { replace: true });
+            return;
+          }
+
           const passwordHash = await hashPassword(password);
-          if (official && user === official.user && passwordHash === official.passwordHash) {
+          if (matchesOfficialAdmin(official, user, passwordHash) && official) {
             try {
               await adminLogin(user, password);
             } catch {
@@ -69,47 +104,76 @@ export function AdminLogin() {
             return;
           }
 
-          if (official) {
+          if (!shouldTryServerLogin(official, user, passwordHash)) {
             setError("Usuario o contraseña incorrectos.");
             return;
           }
 
           try {
-            await adminLogin(user.trim(), password);
+            const data = await adminLogin(user.trim(), password);
+            sessionStorage.setItem("uc-admin-user", user.trim());
+            if (data.mustChange) {
+              openServerSession(true);
+              setMode("change");
+              setCurrentPassword("");
+              setPassword("");
+              setConfirm("");
+              setInfo("Primer acceso: elige una contraseña fuerte. No podrás usar el panel hasta hacerlo.");
+              return;
+            }
+            openServerSession(false);
+            navigate("/admin", { replace: true });
           } catch {
             setError("Usuario o contraseña incorrectos.");
-            return;
           }
-          openServerSession();
-          navigate("/admin", { replace: true });
         }}
       >
         <Logo />
         <h1 className="mt-6 text-2xl font-bold">
-          {mode === "setup" ? "Crear acceso del panel" : "Entrar al panel"}
+          {mode === "setup" ? "Crear acceso del panel" : mode === "change" ? "Cambiar contraseña" : "Entrar al panel"}
         </h1>
         <p className="mt-2 text-sm text-white/50">
           {mode === "setup"
             ? "Primera vez en este navegador. Elige un usuario y una clave. No se guarda en el sitio público."
-            : official
-              ? "Dashboard, inventario, CRM, analítica y configuración de Unidades Chile."
-              : "Ingresa con tu usuario de RG Motors (el mismo de Boletas) y su contraseña."}
+            : mode === "change"
+              ? info || "Elige una contraseña fuerte para continuar."
+              : official
+                ? "Dashboard, inventario, CRM, analítica y configuración de Unidades Chile."
+                : "Ingresa con tu usuario de RG Motors (el mismo de Boletas) y su contraseña."}
         </p>
         <label className="mt-6 block text-xs text-white/45">
           Usuario
-          <input className="field mt-1.5" value={user} onChange={(e) => setUser(e.target.value)} autoComplete="username" />
+          <input
+            className="field mt-1.5"
+            value={user}
+            onChange={(e) => setUser(e.target.value)}
+            autoComplete="username"
+            readOnly={mode === "change"}
+          />
         </label>
+        {mode === "change" && (
+          <label className="mt-4 block text-xs text-white/45">
+            Contraseña temporal actual
+            <input
+              className="field mt-1.5"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          </label>
+        )}
         <label className="mt-4 block text-xs text-white/45">
-          Contraseña
+          {mode === "change" ? "Nueva contraseña" : "Contraseña"}
           <input
             className="field mt-1.5"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            autoComplete={mode === "setup" ? "new-password" : "current-password"}
+            autoComplete={mode === "setup" || mode === "change" ? "new-password" : "current-password"}
           />
         </label>
-        {mode === "setup" && (
+        {(mode === "setup" || mode === "change") && (
           <label className="mt-4 block text-xs text-white/45">
             Confirmar contraseña
             <input
@@ -123,7 +187,7 @@ export function AdminLogin() {
         )}
         {error && <p className="mt-3 text-sm text-brand">{error}</p>}
         <button type="submit" className="mt-6 w-full rounded-full bg-brand py-3 text-sm font-semibold">
-          {mode === "setup" ? "Crear acceso" : "Ingresar"}
+          {mode === "setup" ? "Crear acceso" : mode === "change" ? "Guardar y entrar" : "Ingresar"}
         </button>
       </form>
     </div>
