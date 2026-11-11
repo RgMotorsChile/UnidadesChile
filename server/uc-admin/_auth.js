@@ -1,4 +1,4 @@
-import { supabaseAnon } from "./_db.js";
+import { supabaseAdmin, supabaseAnon } from "./_db.js";
 import { createHash } from "node:crypto";
 
 export function sha256Hex(text) {
@@ -29,19 +29,50 @@ export function sessionFromRequest(req) {
 }
 
 /**
+ * Estado de la cookie de admin: sesión legado (env) o sesión de servidor
+ * (cuenta de Supabase Auth con rol admin del tenant Unidades Chile).
+ * mustChange solo aplica a cuentas de Supabase, nunca a la cuenta oficial.
+ */
+export async function sessionUserState(req) {
+  const token = sessionFromRequest(req);
+  if (!token) return { ok: false, mustChange: false, legacy: false };
+
+  const expected = expectedSessionToken();
+  if (expected && token === expected) {
+    return { ok: true, mustChange: false, legacy: true };
+  }
+
+  const sb = supabaseAnon();
+  if (!sb) return { ok: false, mustChange: false, legacy: false };
+  const { data, error } = await sb.rpc("uc_admin_session_check", { p_token: token });
+  if (error || data !== true) return { ok: false, mustChange: false, legacy: false };
+
+  const admin = supabaseAdmin();
+  if (!admin) return { ok: true, mustChange: false, legacy: false };
+
+  const tokenHash = sha256Hex(token);
+  const { data: row } = await admin
+    .from("uc_admin_sessions")
+    .select("user_id")
+    .eq("token_hash", tokenHash)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+  if (!row?.user_id) return { ok: true, mustChange: false, legacy: false };
+
+  const { data: userData } = await admin.auth.admin.getUserById(row.user_id);
+  const mustChange = userData?.user?.user_metadata?.must_change_password === true;
+  return { ok: true, mustChange, legacy: false, userId: row.user_id };
+}
+
+/**
  * Sesión válida si coincide con el hash de entorno (legado) o si es una sesión
  * de servidor emitida tras iniciar sesión con una cuenta de Supabase Auth que es
  * admin del tenant Unidades Chile (tabla tenant_members).
+ * Si la cuenta debe cambiar la contraseña, no abre el resto del panel.
  */
 export async function isAdminRequest(req) {
-  const token = sessionFromRequest(req);
-  if (!token) return false;
-  const expected = expectedSessionToken();
-  if (expected && token === expected) return true;
-  const sb = supabaseAnon();
-  if (!sb) return false;
-  const { data, error } = await sb.rpc("uc_admin_session_check", { p_token: token });
-  return !error && data === true;
+  const state = await sessionUserState(req);
+  return Boolean(state.ok && !state.mustChange);
 }
 
 /** Usuario sin @ = cuenta RG (usuario@boletas.rgmotorschile.cl). */
