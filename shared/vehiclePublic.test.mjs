@@ -167,6 +167,13 @@ test("catálogo visible por defecto: autos listados y sitemap con fichas, aunque
     process.env.VITE_CATALOG_HIDDEN = "true";
     assert.equal(isCatalogHidden(), false);
     assert.equal(isListedHere(car), true);
+    assert.equal(resolveVehicle(car.publicSlug, catalog).type, "ok");
+    const sold = { ...car, status: "vendido" };
+    const soldDecision = resolveVehicle(sold.publicSlug, [sold]);
+    assert.equal(soldDecision.type, "redirect");
+    assert.equal(soldDecision.to, "/catalogo?estado=vendido");
+    const soldXml = sitemapXml(origin, [sold]);
+    assert.equal(soldXml.includes(`/catalogo/${sold.publicSlug}`), false);
   } finally {
     if (prev === undefined) delete process.env.VITE_CATALOG_HIDDEN;
     else process.env.VITE_CATALOG_HIDDEN = prev;

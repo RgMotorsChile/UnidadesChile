@@ -115,12 +115,13 @@ export function catalogPath(car) {
  * Chile y no se vacía la vitrina.
  */
 /**
- * Catálogo público visible. Los vehículos se crean y editan solo desde el
- * panel admin. Cada auto muestra sus fotos reales; el placeholder de la
- * vitrina aparece solo si ese auto no tiene ninguna. Los datos no se tocan.
+ * Catálogo público visible. VITE_CATALOG_HIDDEN se ignora aunque en Vercel
+ * quede en true o sin definir: no hace falta cambiar esa variable para
+ * publicar la vitrina, el sitemap y las fichas.
  *
- * VITE_CATALOG_HIDDEN se ignora (aunque quede definido en Vercel) para no
- * volver a ocultar la vitrina.
+ * Cada auto usa sus fotos reales. El placeholder aparece solo si no tiene
+ * ninguna. La portada sigue siendo la primera foto real ya guardada. Un
+ * vendido no abre ficha.
  */
 export function isCatalogHidden() {
   return false;
