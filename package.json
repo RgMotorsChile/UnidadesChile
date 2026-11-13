@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test server/uc-admin/_media.test.js server/uc-admin/_sheetRemoval.test.js server/uc-admin/_auth.test.js shared/vehiclePublic.test.mjs shared/vercelFunctions.test.mjs shared/adminPassword.test.mjs src/lib/adminLoginFlow.test.js scripts/add-uc-admin-user.test.js",
+    "test": "node --experimental-strip-types --test server/uc-admin/_media.test.js server/uc-admin/_sheetRemoval.test.js server/uc-admin/_auth.test.js server/uc-admin/_sync.test.js shared/vehiclePublic.test.mjs shared/vercelFunctions.test.mjs shared/adminPassword.test.mjs src/lib/adminLoginFlow.test.js scripts/add-uc-admin-user.test.js",
     "check:images": "node --experimental-strip-types scripts/check-images.mjs",
     "test:e2e": "playwright test"
   },

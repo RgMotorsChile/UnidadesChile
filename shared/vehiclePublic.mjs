@@ -115,18 +115,16 @@ export function catalogPath(car) {
  * Chile y no se vacía la vitrina.
  */
 /**
- * Catálogo público oculto (vitrina vacía). Por defecto TRUE: no se lista ni
- * se abre ninguna ficha, y el sitemap queda sin autos. Los datos siguen en
- * Supabase y el admin no cambia. Para volver a mostrar el stock, definir
- * VITE_CATALOG_HIDDEN=false en Vercel (vale para el navegador y la API) y
- * redeployar, o cambiar el valor por defecto aquí.
+ * Catálogo público visible. VITE_CATALOG_HIDDEN se ignora aunque en Vercel
+ * quede en true o sin definir: no hace falta cambiar esa variable para
+ * publicar la vitrina, el sitemap y las fichas.
+ *
+ * Cada auto usa sus fotos reales. El placeholder aparece solo si no tiene
+ * ninguna. La portada sigue siendo la primera foto real ya guardada. Un
+ * vendido no abre ficha.
  */
 export function isCatalogHidden() {
-  let raw;
-  if (typeof process !== "undefined" && process.env) raw = process.env.VITE_CATALOG_HIDDEN;
-  if (raw == null && import.meta.env) raw = import.meta.env.VITE_CATALOG_HIDDEN;
-  if (raw == null || String(raw).trim() === "") return true;
-  return !/^(0|false|no|off)$/i.test(String(raw).trim());
+  return false;
 }
 
 export function isListedHere(car, sheetPlates = null) {
