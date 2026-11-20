@@ -68,15 +68,9 @@ export function Footer() {
             Desarrollado por <span className="font-medium text-white/80">Mathias Jara</span> &middot; Desarrollador Full Stack
           </span>
           <span className="hidden text-white/20 sm:inline">&middot;</span>
-          <span className="flex flex-wrap items-center justify-center gap-x-2">
-            <a href="https://wa.me/56964710361" target="_blank" rel="noreferrer" className="hover:text-white">
-              +56 9 6471 0361
-            </a>
-            <span className="text-white/20">&middot;</span>
-            <a href="https://southsoftware.cl" className="hover:text-white">
-              Desarrollado por South Software
-            </a>
-          </span>
+          <a href="https://wa.me/56964710361" target="_blank" rel="noreferrer" className="hover:text-white">
+            +56 9 6471 0361
+          </a>
         </div>
       </div>
     </footer>
