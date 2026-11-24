@@ -1,56 +1,45 @@
-import { resolveHandlerKey } from "../shared/apiRoute.mjs";
-import catalogIndex from "./_catalog-index.js";
-import consigna from "./_consigna.js";
-import contacto from "./_contacto.js";
-import html from "./_html.js";
-import img from "./_img.js";
-import ogImage from "./_og-image.js";
-import sheetPlates from "./_sheet-plates.js";
-import sitemap from "./_sitemap.js";
-import login from "../server/uc-admin/_login.js";
-import logout from "../server/uc-admin/_logout.js";
-import photos from "../server/uc-admin/_photos.js";
-import sell from "../server/uc-admin/_sell.js";
-import sync from "../server/uc-admin/_sync.js";
-import vehicles from "../server/uc-admin/_vehicles.js";
-
-/** Una sola función. El plan Hobby corta el deploy en la número 13. */
-export const config = {
-  runtime: "nodejs",
-  api: { bodyParser: { sizeLimit: "4mb" } },
-};
-
-const routes = {
-  "catalog-index": catalogIndex,
-  consigna,
-  contacto,
-  html,
-  img,
-  "og-image": ogImage,
-  "sheet-plates": sheetPlates,
-  sitemap,
-  "admin/login": login,
-  "admin/logout": logout,
-  "admin/photos": photos,
-  "admin/sell": sell,
-  "admin/sync": sync,
-  "admin/vehicles": vehicles,
-};
-
-type Req = { url?: string; query?: Record<string, unknown> };
-type Res = { statusCode: number; setHeader: (k: string, v: string) => void; end: (body?: string) => void };
-
-export default async function handler(req: Req, res: Res) {
-  if (req.query && Object.prototype.hasOwnProperty.call(req.query, "route")) {
-    delete req.query.route;
-  }
-  const key = resolveHandlerKey(req.url);
-  const fn = key ? routes[key as keyof typeof routes] : undefined;
-  if (!fn) {
-    res.statusCode = 404;
-    res.setHeader("content-type", "text/plain; charset=utf-8");
-    res.end("not found");
-    return;
-  }
-  return fn(req as never, res as never);
-}
+const FREEZE_HTML = `<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Error de actualización</title>
+    <style>
+      html, body { margin: 0; min-height: 100%; background: #0b0b0b; color: #f4f4f4; font-family: Inter, system-ui, sans-serif; }
+      main { min-height: 100vh; display: grid; place-items: center; padding: 32px 20px; text-align: center; }
+      p { margin: 0; max-width: 32rem; line-height: 1.55; color: #cfcfcf; }
+      h1 { margin: 0 0 12px; font-size: 1.75rem; font-weight: 700; }
+      small { display: block; margin-top: 18px; color: #888; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div>
+        <h1>Error de actualización</h1>
+        <p>El sitio de Unidades Chile no está disponible por un error durante una actualización. No es posible ingresar por ahora.</p>
+        <small>unidadeschile.cl</small>
+      </div>
+    </main>
+  </body>
+</html>`;
+
+export const config = {
+  runtime: "nodejs",
+  api: { bodyParser: { sizeLimit: "4mb" } },
+};
+
+export default function handler(
+  _req: unknown,
+  res: {
+    statusCode: number;
+    setHeader: (k: string, v: string) => void;
+    end: (body?: string) => void;
+  },
+) {
+  res.statusCode = 503;
+  res.setHeader("content-type", "text/html; charset=utf-8");
+  res.setHeader("cache-control", "no-store, no-cache, must-revalidate");
+  res.setHeader("retry-after", "3600");
+  res.end(FREEZE_HTML);
+}
